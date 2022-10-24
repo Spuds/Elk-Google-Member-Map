@@ -5,14 +5,14 @@
  * @copyright Spuds
  * @license   MPL 1.1 http://mozilla.org/MPL/1.1/
  *
- * @version 1.0.6
+ * @version 1.0.7
  *
  */
 
 // If we have found SSI.php and we are outside of ELK, then we are running standalone.
-if (file_exists(dirname(__FILE__) . '/SSI.php') && !defined('ELK'))
+if (file_exists(__DIR__ . '/SSI.php') && !defined('ELK'))
 {
-	require_once(dirname(__FILE__) . '/SSI.php');
+	require_once(__DIR__ . '/SSI.php');
 }
 elseif (!defined('ELK')) // If we are outside ELK and can't find SSI.php, then throw an error
 {
@@ -143,17 +143,17 @@ while ($row = $db->fetch_assoc($request))
 }
 
 // Give them all their new map permissions to make it easy for the admin.
-$request = $db->query('', '
+$db->query('', '
 	INSERT IGNORE INTO {db_prefix}permissions
 		(permission, id_group, add_deny)
 	VALUES
-		(\'googleMap_view\', ' . implode(', 1),(\'googleMap_view\', ', $groups) . ', 1)');
+		("googleMap_view", ' . implode(', 1),("googleMap_view", ', $groups) . ', 1)');
 
-$request = $db->query('', '
+$db->query('', '
 	INSERT IGNORE INTO {db_prefix}permissions
 		(permission, id_group, add_deny)
 	VALUES
-		(\'googleMap_place\', ' . implode(', 1),(\'googleMap_place\', ', $groups) . ', 1)');
+		("googleMap_place", ' . implode(', 1),("googleMap_place", ', $groups) . ', 1)');
 
 if (ELK === 'SSI')
 {
