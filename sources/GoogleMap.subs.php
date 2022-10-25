@@ -3,7 +3,7 @@
 /**
  * @package "Google Member Map" Addon for Elkarte
  * @author Spuds
- * @copyright (c) 2011-2021 Spuds
+ * @copyright (c) 2011-2022 Spuds
  * @license This Source Code is subject to the terms of the Mozilla Public License
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * http://mozilla.org/MPL/1.1/.
@@ -51,7 +51,7 @@ function gmm_loadPins($loadAll = false)
 	// Can we show all these pins or is a limit set?
 	if (!$loadAll && !empty($modSettings['googleMap_PinNumber']) && $totalPins >= $modSettings['googleMap_PinNumber'])
 	{
-		// More pins then we are allowed show so load the data up at random to the number set in the admin panel
+		// More pins than allowed, show so load the data up at random to the number set in the admin panel
 		$query = '
 		SELECT 
 			id_member

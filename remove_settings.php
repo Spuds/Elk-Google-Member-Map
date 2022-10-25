@@ -63,7 +63,7 @@ if (!empty($_POST['do_db_changes']))
 		'googleMap_BoldMember',
 	);
 
-	// Remove the modsettings from the settings table
+	// Remove the modSettings from the settings table
 	if (count($settings_to_remove) > 0)
 	{
 		// Remove the mod_settings if applicable, first the session

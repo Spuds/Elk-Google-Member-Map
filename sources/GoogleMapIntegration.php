@@ -3,12 +3,12 @@
 /**
  * @package "Google Member Map" Addon for Elkarte
  * @author Spuds
- * @copyright (c) 2011-2021 Spuds
+ * @copyright (c) 2011-2022 Spuds
  * @license This Source Code is subject to the terms of the Mozilla Public License
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * http://mozilla.org/MPL/1.1/.
  *
- * @version 1.0.6
+ * @version 1.0.7
  *
  */
 
@@ -46,7 +46,7 @@ function imc_googlemap($user, $display_custom_fields)
  */
 function ilmd_googlemap(&$select_columns, &$select_tables, $set)
 {
-	if ($set == 'profile' || $set == 'normal')
+	if ($set === 'profile' || $set === 'normal')
 	{
 		$select_columns .= ',mem.latitude, mem.longitude, mem.pindate';
 	}
@@ -64,7 +64,7 @@ function ilpf_googlemap(&$profile_fields)
 {
 	// Our callback_func template is here
 	LoadTemplate('GoogleMap');
-	loadCSSFile('GoogleMap.css');
+	loadCSSFile('GoogleMap.css', array('stale' => '?R107'));
 
 	$profile_fields += array(
 		'latitude' => array(
@@ -160,12 +160,12 @@ function ips_googlemap(&$profile_vars, &$post_errors, $memID)
 {
 	if (isset($_POST['latitude']))
 	{
-		$profile_vars['latitude'] = $_POST['latitude'] != '' ? (float) $_POST['latitude'] : 0;
+		$profile_vars['latitude'] = $_POST['latitude'] !== '' ? (float) $_POST['latitude'] : 0;
 	}
 
 	if (isset($_POST['longitude']))
 	{
-		$profile_vars['longitude'] = $_POST['longitude'] != '' ? (float) $_POST['longitude'] : 0;
+		$profile_vars['longitude'] = $_POST['longitude'] !== '' ? (float) $_POST['longitude'] : 0;
 	}
 }
 
@@ -345,7 +345,7 @@ function ModifyGoogleMapSettings()
 		document.getElementById(\'googleMap_PinForeground\').setAttribute("data-jscolor", "");
 		document.getElementById(\'googleMap_ClusterBackground\').setAttribute("data-jscolor", "");
 		document.getElementById(\'googleMap_ClusterForeground\').setAttribute("data-jscolor", "");',
-	true);
+		true);
 
 	Settings_Form::prepare_db($config_vars);
 }
