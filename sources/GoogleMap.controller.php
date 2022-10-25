@@ -3,12 +3,12 @@
 /**
  * @package "Google Member Map" Addon for Elkarte
  * @author Spuds
- * @copyright (c) 2011-2021 Spuds
+ * @copyright (c) 2011-2022 Spuds
  * @license This Source Code is subject to the terms of the Mozilla Public License
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * http://mozilla.org/MPL/1.1/.
  *
- * @version 1.0.6
+ * @version 1.0.7
  *
  */
 
@@ -59,7 +59,7 @@ class GoogleMap_Controller extends Action_Controller
 
 		// Load up our template and style sheet
 		loadTemplate('GoogleMap');
-		loadCSSFile('GoogleMap.css');
+		loadCSSFile('GoogleMap.css', array('stale' => '?R107'));
 
 		// Load number of member pins
 		$totalSet = gmm_pinCount();
@@ -89,7 +89,7 @@ class GoogleMap_Controller extends Action_Controller
 	{
 		global $context, $txt, $modSettings;
 
-		// Clean and restart the buffer so we only return JS back to the template
+		// Clean and restart the buffer, such that we only return JS back to the template
 		ob_end_clean();
 		if (!empty($modSettings['enableCompressedOutput']))
 		{
@@ -127,30 +127,30 @@ class GoogleMap_Controller extends Action_Controller
 
 	// Map, cluster and info bubble
 	let map,
-		mc,
-		infowindow;
+		mc;
+			
+	// Create an infoWindow for on click use	
+	const infowindow = new google.maps.InfoWindow();
 
-	// Support Icon locations for cluster icons
+	// Icon base location for cluster icons
 	let codebase = "//github.com/googlemaps/js-markerclustererplus/raw/main";
 
-	// Our normal SVG member pin / google.maps.Symbol
+	// Mmember pin details
 	let npic = {
 		path: "M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z",
 		fillColor: "#' . $modSettings['googleMap_PinBackground'] . '",
-		fillOpacity: 1,
+		fillOpacity: .8,
 		strokeColor: "#' . $modSettings['googleMap_PinForeground'] . '",
 		strokeWeight: 1,
 		scale: ' . round($m_iconsize / 24, 2) . ',
 	};
 	
-	// Our normal SVG cluster pin / google.maps.Symbol
+	// Cluster pin details
 	let cpic = {
-		//path: "M18 0c-6.213 0-11.25 5.037-11.25 11.25 0 11.25 11.25 24.75 11.25 24.75s11.25-13.5 11.25-24.75c0-6.213-5.037-11.25-11.25-11.25zM18 18c-3.728 0-6.75-3.022-6.75-6.75s3.022-6.75 6.75-6.75 6.75 3.022 6.75 6.75-3.022 6.75-6.75 6.75z",
 		path: "M385.5 1.1c-55.5 4.4-104.3 17.6-153 41.4C86.8 113.7-4.5 264.8.3 426.5 2.2 487 15.5 542 40.9 594.5 51.8 617 59.2 629.8 74 652c6.5 9.6 85.6 136.9 176 282.7 90.3 145.9 164.6 265.3 165 265.3.4 0 74.7-119.4 165-265.2C670.4 788.9 749.5 661.6 756 652c14.8-22.2 22.2-35 33.1-57.5 42.1-86.9 52-186.9 27.9-282.1-24.4-95.8-82.2-179.5-164-237.1C583.4 26.2 497.9-.6 412.6.1c-9.4.1-21.6.5-27.1 1zM449 177.5c44 8 81.3 27.1 112 57.5 76.9 76.1 82.5 198 13 281.2-33.5 40.2-81.7 66.3-134.4 72.8-11.4 1.4-37.8 1.4-49.2 0-85.3-10.5-155-71.5-176.4-154.4-14.1-54.5-5.2-113.6 24.3-161.3 33-53.1 86.2-87.6 149.7-96.8 13-1.9 48.1-1.3 61 1z",
-		//view: "0,0,36,36",
 		view: "0,0,1280,1280",
 		fillColor: "#' . $modSettings['googleMap_ClusterBackground'] . '",
-		fillOpacity: .9,
+		fillOpacity: .8,
 		strokeColor: "#' . $modSettings['googleMap_ClusterForeground'] . '",
 		strokeWeight: 20,
 	};';
@@ -165,7 +165,7 @@ class GoogleMap_Controller extends Action_Controller
 			}
 
 			echo '
-	// Create a dataURL for use in style url:
+	// Create a dataURL for use in style url, here a standard pin:
 	const clusterPin = "data:image/svg+xml;base64," + window.btoa(\'<svg xmlns="http://www.w3.org/2000/svg" viewBox="\' + cpic.view + \'"><g><path stroke="\' + cpic.strokeColor + \'" stroke-width="\' + cpic.strokeWeight + \'" fill="\' + cpic.fillColor + \'" fill-opacity="\' + cpic.fillOpacity + \'" d="\' + cpic.path + \'" /></g></svg>\');
 
 	// Various cluster pin styles
@@ -205,7 +205,6 @@ class GoogleMap_Controller extends Action_Controller
 		}
 
 		echo '
-
 	// Functions to read xml data
 	function makeRequest(url) {
 		if (window.XMLHttpRequest)
@@ -289,9 +288,7 @@ class GoogleMap_Controller extends Action_Controller
 
 		// Our own initial state button since its gone walkies in the v3 api
 		let reset = document.getElementById("googleMapReset");
-		reset.style.filter = "alpha(opacity=0)";
-		reset.style.mozOpacity = "0";
-		reset.style.opacity = "0";
+		reset.style.opacity = ".2";
 	}
 
 	// Read the output of the marker xml
@@ -315,12 +312,9 @@ class GoogleMap_Controller extends Action_Controller
 			echo '
 		// Send the markers array to the cluster script
 		mc = new MarkerClusterer(map, gmarkers, mcOptions);
-
-		google.maps.event.addListener(mc, "clusterclick", function(cluster) {
-			if (infowindow)
-				infowindow.close();
-
+		mc.addListener("clusterclick", function(cluster) {
 			let clusterMarkers = cluster.getMarkers();
+			
 			map.setCenter(cluster.getCenter());
 
 			// Build the info window content
@@ -329,18 +323,17 @@ class GoogleMap_Controller extends Action_Controller
 				myLatlng;
 				
 			for (let i = 0; i < numtoshow; ++i)
-				content = content + "<img src=\"" + clusterMarkers[i].icon.url + "\" width=\"12\" height=\"12\" />   " + clusterMarkers[i].title + "<br />";
+				content = content + "<img src=\"" + clusterPin + "\" width=\"12\" height=\"12\" />   " + clusterMarkers[i].title + "<br />";
 
 			if (cluster.getSize() > numtoshow)
 				content = content + "<br />', $txt['googleMap_Plus'], ' [" + (cluster.getSize() - numtoshow) + "] ', $txt['googleMap_Otherpins'], '";
 
 			content = content + "</div>";
-
-			infowindow = new google.maps.InfoWindow({
-				content: content,
-				pixelOffset: new google.maps.Size(0, -28)
-			});
+			
 			myLatlng = new google.maps.LatLng(cluster.getCenter().lat(), cluster.getCenter().lng());
+			infowindow.close();
+			infowindow.setOptions({pixelOffset: new google.maps.Size(0, -28)});
+			infowindow.setContent(content);
 			infowindow.setPosition(myLatlng);
 			infowindow.open(map);
 			map.panTo(infowindow.getPosition());
@@ -359,17 +352,16 @@ class GoogleMap_Controller extends Action_Controller
 			position: point,
 			map: map,
 			icon: pic,
-			clickable: true,
+			optimized: true,
 			title: name.replace(/\[b\](.*)\[\/b\]/gi, "$1")
 		});
 
 		// Listen for a marker click
-		google.maps.event.addListener(marker, "click", function() {
-			if (infowindow)
-				infowindow.close();
-
-			infowindow = new google.maps.InfoWindow({content: html});
+		marker.addListener("click", () => {
+			infowindow.close();
+			infowindow.setContent(html);
 			infowindow.open(map, marker);
+			map.panTo(infowindow.getPosition());
 		});
 
 		// Save the info used to populate the sidebar
@@ -389,15 +381,11 @@ class GoogleMap_Controller extends Action_Controller
 
 	// Picks up the sidebar click and opens the corresponding info window
 	function finduser(i) {
-		if (infowindow)
-			infowindow.close();
-
 		let marker = gmarkers[i]["position"];
-
-		infowindow = new google.maps.InfoWindow({
-			content: htmls[i],
-			pixelOffset: new google.maps.Size(0, -20)
-		});
+		
+		infowindow.close();
+		infowindow.setOptions({pixelOffset: new google.maps.Size(0, -20)});
+		infowindow.setContent(htmls[i]);
 		infowindow.setPosition(marker);
 		infowindow.open(map);
 		map.panTo(infowindow.getPosition());
@@ -406,16 +394,13 @@ class GoogleMap_Controller extends Action_Controller
 	// Resets the map to the initial zoom/center values
 	function resetMap() {
 		// Close any info windows we may have opened
-		if (infowindow)
-			infowindow.close();
+		infowindow.close();
 
 		map.setCenter(new google.maps.LatLng(' . (!empty($modSettings['googleMap_DefaultLat']) ? $modSettings['googleMap_DefaultLat'] : 0) . ', ' . (!empty($modSettings['googleMap_DefaultLong']) ? $modSettings['googleMap_DefaultLong'] : 0) . '));
 		map.setZoom(' . $modSettings['googleMap_DefaultZoom'] . ');
-
-		// map.setMapTypeId(google.maps.MapTypeId.' . $modSettings['googleMap_Type'] . ');
 	}
 
-	google.maps.event.addDomListener(window, "load", initialize);';
+	window.addEventListener("load", initialize);';
 
 		obExit(false);
 	}
