@@ -2,7 +2,7 @@
 
 /**
  * @name      Google Member Map
- * @copyright Spuds
+ * @copyright (c) 2011-2021 Spuds
  * @license   MPL 1.1 http://mozilla.org/MPL/1.1/
  *
  * @version 1.0.7
@@ -35,9 +35,9 @@ $mod_settings = array(
 	'googleMap_PinForeground' => '202020',
 	'googleMap_PinStyle' => 'plainpin',
 	'googleMap_PinSize' => 25,
-	'googleMap_DefaultLat' => 0.0,
-	'googleMap_DefaultLong' => 0.0,
-	'googleMap_DefaultZoom' => 1,
+	'googleMap_DefaultLat' => 39.0,
+	'googleMap_DefaultLong' => -95.0,
+	'googleMap_DefaultZoom' => 4,
 	'googleMap_EnableClusterer' => 1,
 	'googleMap_MinMarkerPerCluster' => 5,
 	'googleMap_MinMarkertoCluster' => 90,
@@ -46,7 +46,7 @@ $mod_settings = array(
 	'googleMap_MaxLinesCluster' => 10,
 	'googleMap_ClusterBackground' => 'FF66FF',
 	'googleMap_ClusterForeground' => '202020',
-	'googleMap_ClusterSize' => 25,
+	'googleMap_ClusterSize' => 35,
 	'googleMap_ClusterStyle' => 'plainpin',
 	'googleMap_ClusterShadow' => 1,
 	'googleMap_BoldMember' => 1,
