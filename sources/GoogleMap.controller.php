@@ -97,8 +97,10 @@ class GoogleMap_Controller extends Action_Controller
 
 		// Cluster sizing when enabled
 		$clusterSize = array_fill(0, 5, $c_iconsize);
+		$clusterStyles = [];
 		if (!empty($modSettings['googleMap_ScalableCluster']))
 		{
+			$clusterStyles = [0 => 'googleMap_plainpin', 1=> 'googleMap_zonepin', 2=> 'googleMap_peepspin', 3 => 'googleMap_talkpin'];
 			$clusterSize = [$c_iconsize * 1.0, $c_iconsize * 1.3, $c_iconsize * 1.6, $c_iconsize * 1.9, $c_iconsize * 2.2];
 		}
 
@@ -109,6 +111,7 @@ class GoogleMap_Controller extends Action_Controller
 			'npic_scale' => round($m_iconsize / 24, 2),
 			'cpic_fillColor' => '"#' . $modSettings['googleMap_ClusterBackground'] . '"',
 			'cpic_strokeColor' => '"#' . $modSettings['googleMap_ClusterForeground'] . '"',
+			'cpic_style' => (int) array_search($modSettings['googleMap_ClusterStyle'], $clusterStyles, true),
 			'googleMap_ScalableCluster' => !empty($modSettings['googleMap_ScalableCluster']),
 			'clusterSize' => json_encode($clusterSize),
 			'googleMap_GridSize' => !empty($modSettings['googleMap_GridSize']) ? $modSettings['googleMap_GridSize'] : 2,
@@ -129,6 +132,7 @@ class GoogleMap_Controller extends Action_Controller
 			'txt_googleMap_error' => $txt['googleMap_error'],
 			'txt_googleMap_Plus' => $txt['googleMap_Plus'],
 			'txt_googleMap_Otherpins' => $txt['googleMap_Otherpins'],
+			'txt_googleMap_GroupOfPins' => $txt['googleMap_GroupOfPins'],
 		], true);
 	}
 
