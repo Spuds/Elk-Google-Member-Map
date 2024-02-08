@@ -5,7 +5,7 @@
  * @copyright (c) 2011-2021 Spuds
  * @license   MPL 1.1 http://mozilla.org/MPL/1.1/
  *
- * @version 1.0.7
+ * @version 1.0.8
  *
  */
 
@@ -20,6 +20,8 @@ elseif (!defined('ELK')) // If we are outside ELK and can't find SSI.php, then t
 }
 
 $db = database();
+
+global $modSettings;
 
 // List settings here in the format: setting_key => default_value.  Escape any "s. (" => \")
 $mod_settings = array(
