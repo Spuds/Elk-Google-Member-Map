@@ -3,7 +3,7 @@
 <package-info xmlns="https://www.elkarte.net/site/package-info" xmlns:elk="https://www.elkarte.net/">
 	<id>Spuds:gmmMod</id>
 	<name>Google Member Map</name>
-	<version>1.0.7</version>
+	<version>1.0.8</version>
 	<type>addon</type>
 	<license><![CDATA[
 /**
@@ -12,10 +12,10 @@
  * @author spuds
  * @license MPL 1.1 http://mozilla.org/MPL/1.1/
  *
- * @version 1.0.7
+ * @version 1.0.8
  */
 ]]></license>
-	<install for="1.0 - 1.1.99">
+	<install for="1.1 - 1.1.99">
 		<readme type="file" parsebbc="true">install-readme.txt</readme>
 		<license type="inline">This ElkArte addon is released under a MPL V1.1 license, a copy of it with its provisions is included with the package.</license>
 
@@ -44,10 +44,10 @@
 		<hook hook="integrate_quickhelp" file="SOURCEDIR/GoogleMapIntegration.php" function="ilqh_googlemap" />
 
 		<credits url="www.elkarte.net" license="MPL 1.1" copyright="spuds">Google Member Map</credits>
-		<redirect url="index.php?action=admin;area=addonsettings;sa=googlemap" timeout="5000">redirect.txt</redirect>
+		<redirect url="index.php?action=admin;area=addonsettings;sa=googlemap" timeout="3000">redirect.txt</redirect>
 	</install>
 
-	<uninstall for="1.0 - 1.1.99">
+	<uninstall for="1.1 - 1.1.99">
 		<readme type="file" parsebbc="true">uninstall-readme.txt</readme>
 		<hook reverse="true" hook="integrate_admin_areas" file="SOURCEDIR/GoogleMapIntegration.php" function="iaa_googlemap" />
 		<hook reverse="true" hook="integrate_sa_modify_modifications" file="SOURCEDIR/GoogleMapIntegration.php" function="imm_googlemap" />
@@ -65,7 +65,7 @@
 		<remove-file name="SOURCEDIR/GoogleMapIntegration.php" />
 		<remove-file name="CONTROLLERDIR/GoogleMap.controller.php" />
 		<remove-file name="SUBSDIR/GoogleMap.subs.php" destination="SUBSDIR" />
-		<remove-file name="THEMEDIR/scripts/jscolor.min.js" />
+		<remove-dir name="THEMEDIR/scripts/gmm"></remove-dir>
 		<remove-file name="THEMEDIR/css/GoogleMap.css" />
 		<remove-file name="THEMEDIR/GoogleMap.template.php" />
 		<remove-file name="LANGUAGEDIR/english/GoogleMap.english.php" />

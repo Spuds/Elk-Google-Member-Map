@@ -8,7 +8,7 @@
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * http://mozilla.org/MPL/1.1/.
  *
- * @version 1.0.7
+ * @version 1.0.8
  *
  */
 
@@ -63,6 +63,7 @@ class GoogleMap_Controller extends Action_Controller
 
 		// Load number of member pins
 		$totalSet = gmm_pinCount();
+		$context['total_pins'] = $totalSet;
 
 		// Create the pins for template use
 		if (!empty($modSettings['googleMap_EnableLegend']))
@@ -70,339 +71,65 @@ class GoogleMap_Controller extends Action_Controller
 			$this->gmm_buildpins();
 		}
 
-		// Load in our javascript
-		loadJavascriptFile('https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js');
-		loadJavascriptFile('//maps.google.com/maps/api/js?key=' . $modSettings['googleMap_Key'] . '"', array(), 'sensor.js');
+		// Set up our JS Vars and base scripts
+		$this->gmm_buildVars();
+		loadJavascriptFile(['https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js', '/gmm/gmm.js']);
 
-		// Show the map
+		// The main Google Maps script, it will call our initialize function (in gmm.js)
+		loadJavascriptFile('//maps.google.com/maps/api/js?key=' . $modSettings['googleMap_Key'] . '&loading=async&callback=initialize', array('async' => true), 'sensor.js');
+
+		// Show the template
 		$context['place_pin'] = allowedTo('googleMap_place');
-		$context['total_pins'] = $totalSet;
 		$context['sub_template'] = 'map';
 		$context['page_title'] = $txt['googleMap'];
 	}
 
-	/**
-	 * Creates the maps javascript file based on the admin settings
-	 * Called from the map template file via map action=GoogleMap;sa=js
-	 */
-	public function action_js()
+	public function gmm_buildVars()
 	{
-		global $context, $txt, $modSettings;
+		global $modSettings, $txt, $context;
 
-		// Clean and restart the buffer, such that we only return JS back to the template
-		ob_end_clean();
-		if (!empty($modSettings['enableCompressedOutput']))
-		{
-			ob_start('ob_gzhandler');
-		}
-		else
-		{
-			ob_start();
-		}
-
-		// Start up the session URL fixer.
-		ob_start('ob_sessrewrite');
-
-		// Let them know what they are about to get
-		header('Content-Type: application/javascript');
-
-		// Our push pins as defined from gmm_buildpins
+		// Our push pins are defined from gmm_buildpins
 		$this->gmm_buildpins();
 
 		// Validate the specified pin size is not to small
 		$m_iconsize = (isset($modSettings['googleMap_PinSize']) && $modSettings['googleMap_PinSize'] > 14) ? $modSettings['googleMap_PinSize'] : 24;
 		$c_iconsize = (isset($modSettings['googleMap_ClusterSize']) && $modSettings['googleMap_ClusterSize'] > 14) ? $modSettings['googleMap_ClusterSize'] : 24;
 
-		// Pin count
-		$context['total_pins'] = isset($_REQUEST['count']) ? (int) $_REQUEST['count'] : 0;
-
-		// Lets start making some javascript
-		echo '	// Globals
-	let xhr = false;
-
-	// Arrays to hold copies of the markers and html used by the sidebar
-	let gmarkers = [],
-		htmls = [],
-		sidebar_html = "";
-
-	// Map, cluster and info bubble
-	let map,
-		mc;
-			
-	// Create an infoWindow for on click use	
-	const infowindow = new google.maps.InfoWindow();
-
-	// Icon base location for cluster icons
-	let codebase = "//github.com/googlemaps/js-markerclustererplus/raw/main";
-
-	// Mmember pin details
-	let npic = {
-		path: "M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z",
-		fillColor: "#' . $modSettings['googleMap_PinBackground'] . '",
-		fillOpacity: .8,
-		strokeColor: "#' . $modSettings['googleMap_PinForeground'] . '",
-		strokeWeight: 1,
-		scale: ' . round($m_iconsize / 24, 2) . ',
-	};
-	
-	// Cluster pin details
-	let cpic = {
-		path: "M385.5 1.1c-55.5 4.4-104.3 17.6-153 41.4C86.8 113.7-4.5 264.8.3 426.5 2.2 487 15.5 542 40.9 594.5 51.8 617 59.2 629.8 74 652c6.5 9.6 85.6 136.9 176 282.7 90.3 145.9 164.6 265.3 165 265.3.4 0 74.7-119.4 165-265.2C670.4 788.9 749.5 661.6 756 652c14.8-22.2 22.2-35 33.1-57.5 42.1-86.9 52-186.9 27.9-282.1-24.4-95.8-82.2-179.5-164-237.1C583.4 26.2 497.9-.6 412.6.1c-9.4.1-21.6.5-27.1 1zM449 177.5c44 8 81.3 27.1 112 57.5 76.9 76.1 82.5 198 13 281.2-33.5 40.2-81.7 66.3-134.4 72.8-11.4 1.4-37.8 1.4-49.2 0-85.3-10.5-155-71.5-176.4-154.4-14.1-54.5-5.2-113.6 24.3-161.3 33-53.1 86.2-87.6 149.7-96.8 13-1.9 48.1-1.3 61 1z",
-		view: "0,0,1280,1280",
-		fillColor: "#' . $modSettings['googleMap_ClusterBackground'] . '",
-		fillOpacity: .8,
-		strokeColor: "#' . $modSettings['googleMap_ClusterForeground'] . '",
-		strokeWeight: 20,
-	};';
-
-		// Cluster Pin Styles
-		if (!empty($modSettings['googleMap_EnableClusterer']))
+		// Cluster sizing when enabled
+		$clusterSize = array_fill(0, 5, $c_iconsize);
+		if (!empty($modSettings['googleMap_ScalableCluster']))
 		{
-			$clusterSize = array_fill(0, 5, $c_iconsize);
-			if (!empty($modSettings['googleMap_ScalableCluster']))
-			{
-				$clusterSize = [$c_iconsize, $c_iconsize * 1.3, $c_iconsize * 1.6, $c_iconsize * 1.9, $c_iconsize * 2.2];
-			}
-
-			echo '
-	// Create a dataURL for use in style url, here a standard pin:
-	const clusterPin = "data:image/svg+xml;base64," + window.btoa(\'<svg xmlns="http://www.w3.org/2000/svg" viewBox="\' + cpic.view + \'"><g><path stroke="\' + cpic.strokeColor + \'" stroke-width="\' + cpic.strokeWeight + \'" fill="\' + cpic.fillColor + \'" fill-opacity="\' + cpic.fillOpacity + \'" d="\' + cpic.path + \'" /></g></svg>\');
-
-	// Various cluster pin styles
-	const styles = [[
-		MarkerClusterer.withDefaultStyle({url: clusterPin, textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[0] . ', height: ' . $clusterSize[0] . ', anchorIcon: [' . $clusterSize[0] . ', ' . $clusterSize[0] / 2 . '], anchorText: [-6, -6], textSize: 10}),
-		MarkerClusterer.withDefaultStyle({url: clusterPin, textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[1] . ', height: ' . $clusterSize[1] . ', anchorIcon: [' . $clusterSize[1] . ', ' . $clusterSize[1] / 2 . '], anchorText: [-8, -8], textSize: 11}),
-		MarkerClusterer.withDefaultStyle({url: clusterPin, textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[2] . ', height: ' . $clusterSize[2] . ', anchorIcon: [' . $clusterSize[2] . ', ' . $clusterSize[2] / 2 . '], anchorText: [-10, -10], textSize: 12}),
-		MarkerClusterer.withDefaultStyle({url: clusterPin, textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[3] . ', height: ' . $clusterSize[3] . ', anchorIcon: [' . $clusterSize[3] . ', ' . $clusterSize[3] / 2 . '], anchorText: [-12, -12], textSize: 13}),
-		MarkerClusterer.withDefaultStyle({url: clusterPin, textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[4] . ', height: ' . $clusterSize[4] . ', anchorIcon: [' . $clusterSize[4] . ', ' . $clusterSize[4] / 2 . '], anchorText: [-14, -14], textSize: 14}),
-	],[
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/m1.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[0] . ', height: ' . $clusterSize[0] . ', anchorIcon: [' . $clusterSize[0] . ', ' . $clusterSize[0] / 2 . ']}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/m2.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[1] . ', height: ' . $clusterSize[1] . ', anchorIcon: [' . $clusterSize[1] . ', ' . $clusterSize[1] / 2 . ']}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/m3.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[2] . ', height: ' . $clusterSize[2] . ', anchorIcon: [' . $clusterSize[2] . ', ' . $clusterSize[2] / 2 . ']}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/m4.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[3] . ', height: ' . $clusterSize[3] . ', anchorIcon: [' . $clusterSize[3] . ', ' . $clusterSize[3] / 2 . ']}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/m5.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[4] . ', height: ' . $clusterSize[4] . ', anchorIcon: [' . $clusterSize[4] . ', ' . $clusterSize[4] / 2 . ']}),
-	],[
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/people35.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[0] . ', height: ' . $clusterSize[0] . ', anchorIcon: [' . $clusterSize[0] . ', ' . $clusterSize[0] / 2 . '], anchorText: [8, 0]}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/people45.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[1] . ', height: ' . $clusterSize[1] . ', anchorIcon: [' . $clusterSize[1] . ', ' . $clusterSize[1] / 2 . '], anchorText: [10, 0]}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/people55.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[2] . ', height: ' . $clusterSize[2] . ', anchorIcon: [' . $clusterSize[2] . ', ' . $clusterSize[2] / 2 . '], anchorText: [10, 0]}),
-	],[
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/conv30.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[0] . ', height: ' . $clusterSize[0] . ', anchorIcon: [' . $clusterSize[0] . ', ' . $clusterSize[0] / 2 . '], anchorText: [-5, 0]}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/conv40.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[1] . ', height: ' . $clusterSize[1] . ', anchorIcon: [' . $clusterSize[1] . ', ' . $clusterSize[1] / 2 . '], anchorText: [-6, 0]}),
-		MarkerClusterer.withDefaultStyle({url: codebase + "/images/conv50.png", textColor: "#'. $modSettings['googleMap_ClusterForeground'] .'", width: ' . $clusterSize[2] . ', height: ' . $clusterSize[2] . ', anchorIcon: [' . $clusterSize[2] . ', ' . $clusterSize[2] / 2 . '], anchorText: [-7, 0]}),
-	]];
-
-	// Who does not like a good old fashioned cluster, cause that is what we have here
-	let style = ' . (is_int($this->_cpin) ? $this->_cpin : 0) . ';
-	let mcOptions = {
-		gridSize: ' . (!empty($modSettings['googleMap_GridSize']) ? $modSettings['googleMap_GridSize'] : 2) . ',
-		maxZoom: 6,
-		averageCenter: true,
-		zoomOnClick: false,
-		minimumClusterSize: ' . (!empty($modSettings['googleMap_MinMarkerPerCluster']) ? $modSettings['googleMap_MinMarkerPerCluster'] : 20) . ',
-		title: "' . $txt['googleMap_GroupOfPins'] . '",
-		styles: styles[style],
-	};';
+			$clusterSize = [$c_iconsize * 1.0, $c_iconsize * 1.3, $c_iconsize * 1.6, $c_iconsize * 1.9, $c_iconsize * 2.2];
 		}
 
-		echo '
-	// Functions to read xml data
-	function makeRequest(url) {
-		if (window.XMLHttpRequest)
-		{
-			xhr = new XMLHttpRequest();
-		}
-		else
-		{
-			if (window.ActiveXObject)
-			{
-				try {
-					xhr = new ActiveXObject("Microsoft.XMLHTTP");
-				} catch (e) { }
-			}
-		}
+		// Move ACP settings into JS vars for use in gmm.js
+		addJavascriptVar([
+			'npic_fillColor' => '"#' . $modSettings['googleMap_PinBackground'] . '"',
+			'npic_strokeColor' => '"#' . $modSettings['googleMap_PinForeground'] . '"',
+			'npic_scale' => round($m_iconsize / 24, 2),
+			'cpic_fillColor' => '"#' . $modSettings['googleMap_ClusterBackground'] . '"',
+			'cpic_strokeColor' => '"#' . $modSettings['googleMap_ClusterForeground'] . '"',
+			'googleMap_ScalableCluster' => !empty($modSettings['googleMap_ScalableCluster']),
+			'clusterSize' => json_encode($clusterSize),
+			'googleMap_GridSize' => !empty($modSettings['googleMap_GridSize']) ? $modSettings['googleMap_GridSize'] : 2,
+			'googleMap_MinMarkerPerCluster' => !empty($modSettings['googleMap_MinMarkerPerCluster']) ? $modSettings['googleMap_MinMarkerPerCluster'] : 20,
+			'latlng' => '{lat: ' . (!empty($modSettings['googleMap_DefaultLat']) ? $modSettings['googleMap_DefaultLat'] : 0) . ', lng: ' . (!empty($modSettings['googleMap_DefaultLong']) ? $modSettings['googleMap_DefaultLong'] : 0) . '}',
+			'googleMap_DefaultLat' => !empty($modSettings['googleMap_DefaultLat']) ? $modSettings['googleMap_DefaultLat'] : 0,
+			'googleMap_DefaultLong'	=>  !empty($modSettings['googleMap_DefaultLong']) ? $modSettings['googleMap_DefaultLong'] : 0,
+			'googleMap_DefaultZoom' => $modSettings['googleMap_DefaultZoom'],
+			'googleMap_Type' => '"' . $modSettings['googleMap_Type'] . '"',
+			'googleMap_EnableClusterer' => !empty($modSettings['googleMap_EnableClusterer']) && ($context['total_pins'] > (!empty($modSettings['googleMap_MinMarkertoCluster']) ? $modSettings['googleMap_MinMarkertoCluster'] : 50)) ? 'true' : 'false',
+			'googleMap_MaxLinesCluster' => $modSettings['googleMap_MaxLinesCluster'] ?? 10,
+			'googleMap_Sidebar' => '"' . $modSettings['googleMap_Sidebar'] . '"',
+		]);
 
-		if (xhr)
-		{
-			xhr.onreadystatechange = showContents;
-			xhr.open("GET", url, true);
-			xhr.send(null);
-		}
-		else
-		{
-			document.write("' . $txt['googleMap_xmlerror'] . '");
-		}
-	}
-
-	function showContents() {
-		let xmldoc = \'\';
-
-		if (xhr.readyState === 4)
-		{
-			// Run on server (200) or local machine (0)
-			if (xhr.status === 200 || xhr.status === 0)
-			{
-				xmldoc = xhr.responseXML;
-				makeMarkers(xmldoc);
-			}
-			else
-			{
-				document.write("' . $txt['googleMap_error'] . ' - " + xhr.status);
-			}
-		}
-	}
-
-	// Create the map and load our data
-	function initialize() {
-		// Create the map
-		let latlng = {lat: '. (!empty($modSettings['googleMap_DefaultLat']) ? $modSettings['googleMap_DefaultLat'] : 0) . ', lng: ' . (!empty($modSettings['googleMap_DefaultLong']) ? $modSettings['googleMap_DefaultLong'] : 0) . '};
-		let myStyle = [{
-			featureType: "road",
-			elementType: "geometry",
-			stylers: [
-				{ lightness: -50 },
-				{ hue: "#0099ff" }
-			]
-		}];
-		let options = {
-			zoom: ' . $modSettings['googleMap_DefaultZoom'] . ',
-			controlSize: 25,
-			center: latlng,
-			styles: myStyle,
-			gestureHandling: "cooperative",
-			mapTypeId: google.maps.MapTypeId.' . $modSettings['googleMap_Type'] . ',
-			mapTypeControlOptions: {
-         		mapTypeIds: [google.maps.MapTypeId.ROADMAP, google.maps.MapTypeId.TERRAIN, google.maps.MapTypeId.SATELLITE, google.maps.MapTypeId.HYBRID],
-         		style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
-	       	},
-	       	zoomControl: true,
-			mapTypeControl: true,
-			scaleControl: true,
-			streetViewControl: true,
-			rotateControl: false,
-			fullscreenControl: false,
-		};
-		map = new google.maps.Map(document.getElementById("map"), options);
-
-		// Load the members data
-		makeRequest(elk_scripturl + "?action=GoogleMap;sa=xml");
-
-		// Our own initial state button since its gone walkies in the v3 api
-		let reset = document.getElementById("googleMapReset");
-		reset.style.opacity = ".2";
-	}
-
-	// Read the output of the marker xml
-	function makeMarkers(xmldoc) {
-		let markers = xmldoc.documentElement.getElementsByTagName("marker"),
-			point,
-			html,
-			label;
-
-		// Create the pins/markers
-		for (let i = 0; i < markers.length; ++i) {
-			point = {lat: parseFloat(markers[i].getAttribute("lat")), lng: parseFloat(markers[i].getAttribute("lng"))};
-			html = markers[i].childNodes[0].nodeValue;
-			label = markers[i].getAttribute("label");
-			createMarker(point, npic, label, html, i);
-		}';
-
-		// Clustering enabled and we have enough pins?
-		if (!empty($modSettings['googleMap_EnableClusterer']) && ($context['total_pins'] > (!empty($modSettings['googleMap_MinMarkertoCluster']) ? $modSettings['googleMap_MinMarkertoCluster'] : 50)))
-		{
-			echo '
-		// Send the markers array to the cluster script
-		mc = new MarkerClusterer(map, gmarkers, mcOptions);
-		mc.addListener("clusterclick", function(cluster) {
-			let clusterMarkers = cluster.getMarkers();
-			
-			map.setCenter(cluster.getCenter());
-
-			// Build the info window content
-			let content = "<div style=\"text-align:left\">",
-				numtoshow = Math.min(cluster.getSize(), ', $modSettings['googleMap_MaxLinesCluster'] ?? 10, '),
-				myLatlng;
-				
-			for (let i = 0; i < numtoshow; ++i)
-				content = content + "<img src=\"" + clusterPin + "\" width=\"12\" height=\"12\" />   " + clusterMarkers[i].title + "<br />";
-
-			if (cluster.getSize() > numtoshow)
-				content = content + "<br />', $txt['googleMap_Plus'], ' [" + (cluster.getSize() - numtoshow) + "] ', $txt['googleMap_Otherpins'], '";
-
-			content = content + "</div>";
-			
-			myLatlng = new google.maps.LatLng(cluster.getCenter().lat(), cluster.getCenter().lng());
-			infowindow.close();
-			infowindow.setOptions({pixelOffset: new google.maps.Size(0, -28)});
-			infowindow.setContent(content);
-			infowindow.setPosition(myLatlng);
-			infowindow.open(map);
-			map.panTo(infowindow.getPosition());
-		});';
-		}
-
-		echo '
-		// Place the assembled sidebar_html contents into the sidebar div
-		document.getElementById("googleSidebar").innerHTML = sidebar_html;
-	}
-
-	// Create a marker and set up the event window
-	function createMarker(point, pic, name, html, i) {
-		// Map marker
-		let marker = new google.maps.Marker({
-			position: point,
-			map: map,
-			icon: pic,
-			optimized: true,
-			title: name.replace(/\[b\](.*)\[\/b\]/gi, "$1")
-		});
-
-		// Listen for a marker click
-		marker.addListener("click", () => {
-			infowindow.close();
-			infowindow.setContent(html);
-			infowindow.open(map, marker);
-			map.panTo(infowindow.getPosition());
-		});
-
-		// Save the info used to populate the sidebar
-		gmarkers.push(marker);
-		htmls.push(html);
-		name = name.replace(/\[b\](.*)\[\/b\]/gi, "<strong>$1</strong>");
-
-		// Add a line to the sidebar html';
-		if ($modSettings['googleMap_Sidebar'] !== 'none')
-		{
-			echo '
-		sidebar_html += \'<a href="javascript:finduser(\' + i + \')">\' + name + \'</a><br /> \';';
-		}
-
-		echo '
-	}
-
-	// Picks up the sidebar click and opens the corresponding info window
-	function finduser(i) {
-		let marker = gmarkers[i]["position"];
-		
-		infowindow.close();
-		infowindow.setOptions({pixelOffset: new google.maps.Size(0, -20)});
-		infowindow.setContent(htmls[i]);
-		infowindow.setPosition(marker);
-		infowindow.open(map);
-		map.panTo(infowindow.getPosition());
-	}
-
-	// Resets the map to the initial zoom/center values
-	function resetMap() {
-		// Close any info windows we may have opened
-		infowindow.close();
-
-		map.setCenter(new google.maps.LatLng(' . (!empty($modSettings['googleMap_DefaultLat']) ? $modSettings['googleMap_DefaultLat'] : 0) . ', ' . (!empty($modSettings['googleMap_DefaultLong']) ? $modSettings['googleMap_DefaultLong'] : 0) . '));
-		map.setZoom(' . $modSettings['googleMap_DefaultZoom'] . ');
-	}
-
-	window.addEventListener("load", initialize);';
-
-		obExit(false);
+		// Clean the txt vars
+		addJavascriptVar([
+			'txt_googleMap_xmlerror' => $txt['googleMap_xmlerror'],
+			'txt_googleMap_error' => $txt['googleMap_error'],
+			'txt_googleMap_Plus' => $txt['googleMap_Plus'],
+			'txt_googleMap_Otherpins' => $txt['googleMap_Otherpins'],
+		], true);
 	}
 
 	/**
@@ -416,19 +143,8 @@ class GoogleMap_Controller extends Action_Controller
 	{
 		global $context, $settings, $options, $scripturl, $txt, $modSettings, $user_info, $memberContext;
 
-		// Make sure the buffer is empty so we return clean XML to the template
-		ob_end_clean();
-		if (!empty($modSettings['enableCompressedOutput']))
-		{
-			@ob_start('ob_gzhandler');
-		}
-		else
-		{
-			ob_start();
-		}
-
-		// Start up the session URL fixer.
-		ob_start('ob_sessrewrite');
+		// Make sure the buffer is empty
+		ob_clean();
 
 		// XML Header
 		header('Content-Type: application/xml; charset=UTF-8');
@@ -436,7 +152,7 @@ class GoogleMap_Controller extends Action_Controller
 		// Lets load in some pin data
 		$temp = gmm_loadPins();
 
-		// Load all of the data for these 'pined' members
+		// Load all the data for these 'pined' members
 		loadMemberData($temp);
 		foreach ($temp as $mem)
 		{
@@ -457,81 +173,68 @@ class GoogleMap_Controller extends Action_Controller
 			// For every member with a pin, build the info bubble ...
 			foreach ($memberContext as $marker)
 			{
-				$datablurb = '';
+				$dataBlurb = '';
 
 				// Guests don't get to see this ....
 				if (!$user_info['is_guest'])
 				{
-					$datablurb = '
+					$dataBlurb = '
 			<div class="googleMap">
 				<h4>
 					<a  href="' . $marker['online']['href'] . '" title="' . $marker['online']['text'] . '">';
-
-					// 1.0
-					if (!empty($marker['online']['image_href']))
-					{
-						$datablurb .= '
-						<img class="centericon" src="' . $marker['online']['image_href'] . '" alt="' . $marker['online']['text'] . '" /></a>';
-					}
-					// 1.1
-					else
-					{
-						$datablurb .= '
-						<i class="' . ($marker['online']['is_online'] ? 'iconline' : 'icoffline') . '" title="' . $marker['online']['text'] . '"></i>';
-					}
-
-					$datablurb .= '	
+						$dataBlurb .= '
+						<i class="' . ($marker['online']['is_online'] ? 'iconline' : 'icoffline') . '" title="' . $marker['online']['text'] . '"></i>
 					<a href="' . $marker['href'] . '">' . $marker['name'] . '</a>
 				</h4>';
 
 					// avatar?
 					if (!empty($settings['show_user_images']) && empty($options['show_no_avatars']) && !empty($marker['avatar']['image']))
 					{
-						$datablurb .= '
+						$dataBlurb .= '
 				<div class="gmm_avatar" style="max-height:' . $div_height . 'px">' . $marker['avatar']['image'] . '</div>';
 					}
 
 					// user info section
-					$datablurb .= '
+					$dataBlurb .= '
 				<div class="gmm_poster">
 					<ul class="reset">';
 
 					// Show the member's primary group (like 'Administrator') if they have one.
 					if (!empty($marker['group']))
 					{
-						$datablurb .= '
+						$dataBlurb .= '
 						<li class="membergroup">' . $marker['group'] . '</li>';
 					}
 
 					// Show the post group if and only if they have no other group or the option is on, and they are in a post group.
 					if ((empty($settings['hide_post_group']) || $marker['group'] === '') && $marker['post_group'] !== '')
 					{
-						$datablurb .= '
+						$dataBlurb .= '
 						<li class="postgroup">' . $marker['post_group'] . '</li>';
 					}
 
 					// groups icons
-					$datablurb .= '
+					$dataBlurb .= '
 						<li class="icons">' . $marker['group_icons'] . '</li>';
 
 					// show the title, if they have one
 					if (!empty($marker['title']) && !$user_info['is_guest'])
 					{
-						$datablurb .= '
+						$dataBlurb .= '
 						<li class="title">' . $marker['title'] . '</li>';
 					}
 
 					// Show the profile, website, email address, and personal message buttons.
 					if ($settings['show_profile_buttons'])
 					{
-						$datablurb .= '
+						$dataBlurb .= '
 						<li>
 							<ul>';
 
 						// Don't show an icon if they haven't specified a website.
 						if ($marker['website']['url'] !== '' && !isset($context['disabled_fields']['website']))
 						{
-							$datablurb .= '
+							$dataBlurb .= '
 								<li>
 									<a href="' . $marker['website']['url'] . '" title="' . $marker['website']['title'] . '" target="_blank" class="new_win">' . ($settings['use_image_buttons'] ? '<img class="icon" src="' . $settings['images_url'] . '/profile/www_sm.png" alt="' . $marker['website']['title'] . '" />' : $txt['www']) . '
 								</li>';
@@ -540,47 +243,37 @@ class GoogleMap_Controller extends Action_Controller
 						// Don't show the email address if they want it hidden.
 						if (in_array($marker['show_email'], array('yes', 'yes_permission_override', 'no_through_forum')))
 						{
-							$datablurb .= '
+							$dataBlurb .= '
 								<li>
 									<a href="' . $scripturl . '?action=emailuser;sa=email;uid=' . $marker['id'] . '">' . ($settings['use_image_buttons'] ? '<img class="icon" src="' . $settings['images_url'] . '/profile/email_sm.png" alt="' . $txt['email'] . '" title="' . $txt['email'] . '" />' : $txt['email']) . '
 								</li>';
 						}
 
 						// Show the PM tag
-						$datablurb .= '
+						$dataBlurb .= '
 								<li>
 									<a href="' . $scripturl . '?action=pm;sa=send;u=' . $marker['id'] . '">';
-						$datablurb .= $settings['use_image_buttons'] ? '<img class="icon" src="' . $settings['images_url'] . '/profile/im_' . ($marker['online']['is_online'] ? 'on' : 'off') . '.png" alt="' . $txt['send_message'] . '" title="' . $txt['send_message'] . '" />' : ($marker['online']['is_online'] ? $txt['pm_online'] : $txt['pm_offline']);
-						$datablurb .= '
+						$dataBlurb .= $settings['use_image_buttons'] ? '<img class="icon" src="' . $settings['images_url'] . '/profile/im_' . ($marker['online']['is_online'] ? 'on' : 'off') . '.png" alt="' . $txt['send_message'] . '" title="' . $txt['send_message'] . '" />' : ($marker['online']['is_online'] ? $txt['pm_online'] : $txt['pm_offline']);
+						$dataBlurb .= '
 								</li>';
 
-						$datablurb .= '
+						$dataBlurb .= '
 							</ul>
 						</li>';
 					}
 
-					$datablurb .= '
+					$dataBlurb .= '
 					</ul>
 				</div>';
 
 					// Show their personal text?
-					if (!empty($settings['show_blurb']))
+					if (!empty($settings['show_blurb']) && !empty($marker['cust_blurb']))
 					{
-						// 1.0
-						if (!empty($marker['blurb']))
-						{
-							$datablurb .= '
-				<br class="clear" />' . $marker['blurb'];
-						}
-						// 1.1
-						elseif (!empty($marker['cust_blurb']))
-						{
-							$datablurb .= '
+						$dataBlurb .= '
 				<br class="clear" />' . $marker['cust_blurb'];
-						}
 					}
 
-					$datablurb .= '
+					$dataBlurb .= '
 			</div>';
 				}
 
@@ -590,11 +283,11 @@ class GoogleMap_Controller extends Action_Controller
 
 				if (!empty($modSettings['googleMap_BoldMember']) && $marker['googleMap']['pindate'] >= $last_week)
 				{
-					$markers .= ' label="[b]' . $marker['name'] . '[/b]"><![CDATA[' . $datablurb . ']]></marker>';
+					$markers .= ' label="[b]' . $marker['name'] . '[/b]"><![CDATA[' . $dataBlurb . ']]></marker>';
 				}
 				else
 				{
-					$markers .= ' label="' . $marker['name'] . '"><![CDATA[' . $datablurb . ']]></marker>';
+					$markers .= ' label="' . $marker['name'] . '"><![CDATA[' . $dataBlurb . ']]></marker>';
 				}
 
 				echo $markers;
@@ -608,7 +301,7 @@ class GoogleMap_Controller extends Action_Controller
 	}
 
 	/**
-	 * Creates google earth kml data
+	 * Creates Google Earth kml data
 	 *
 	 * - Generates a file for saving that can then be imported in to Google Earth
 	 */
@@ -629,18 +322,7 @@ class GoogleMap_Controller extends Action_Controller
 		loadLanguage('GoogleMap');
 
 		// Start off empty, we want a clean stream
-		ob_end_clean();
-		if (!empty($modSettings['enableCompressedOutput']))
-		{
-			@ob_start('ob_gzhandler');
-		}
-		else
-		{
-			ob_start();
-		}
-
-		// Start up the session URL fixer.
-		ob_start('ob_sessrewrite');
+		ob_clean();
 
 		// It will be a file called ourforumname.kml
 		header('Content-type: application/keyhole;');
@@ -657,8 +339,8 @@ class GoogleMap_Controller extends Action_Controller
 
 		// Start building the output
 		echo '<?xml version="1.0" encoding="', $context['character_set'], '"?' . '>
-		<kml xmlns="http://www.opengis.net/kml/2.2"
-		 xmlns:gx="http://www.google.com/kml/ext/2.2">
+		<kml xmlns="https://www.opengis.net/kml/2.2"
+		 xmlns:gx="https://www.google.com/kml/ext/2.2">
 		<Folder>
 			<name>' . $mbname . '</name>
 			<open>1</open>';
@@ -874,13 +556,13 @@ class GoogleMap_Controller extends Action_Controller
 	{
 		global $modSettings;
 
-		// no leading #'s please
+		// No leading #'s please
 		if (substr($modSettings[$color], 0, 1) === '#')
 		{
 			$modSettings[$color] = substr($modSettings[$color], 1);
 		}
 
-		// is it a hex
+		// Is it a hex, it needs to be!
 		if (!preg_match('~^[a-f0-9]{6}$~i', $modSettings[$color]))
 		{
 			$modSettings[$color] = $default;

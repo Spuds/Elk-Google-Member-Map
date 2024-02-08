@@ -8,7 +8,7 @@
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * http://mozilla.org/MPL/1.1/.
  *
- * @version 1.0.7
+ * @version 1.0.8
  *
  */
 
@@ -29,7 +29,7 @@ function imc_googlemap($user, $display_custom_fields)
 		'googleMap' => array(
 			'latitude' => !isset($user_profile[$user]['latitude']) ? 0 : (float) $user_profile[$user]['latitude'],
 			'longitude' => !isset($user_profile[$user]['longitude']) ? 0 : (float) $user_profile[$user]['longitude'],
-			'pindate' => !isset($user_profile[$user]['pindate']) ? '' : $user_profile[$user]['pindate'],
+			'pindate' => $user_profile[$user]['pindate'] ?? '',
 		)
 	);
 }
@@ -258,11 +258,11 @@ function ModifyGoogleMapSettings()
 	loadlanguage('GoogleMap');
 	$context[$context['admin_menu_name']]['tab_data']['tabs']['googlemap']['description'] = $txt['googleMap_desc'];
 
-	// Lets build a settings form
+	// Let's build a settings form
 	require_once(SUBSDIR . '/SettingsForm.class.php');
 
 	// Instantiate the form
-	$gmmSettings = new Settings_Form();
+	$gmmSettings = new Settings_Form(Settings_Form::DB_ADAPTER);
 
 	$config_vars = array(
 		// Map - On or off?
@@ -270,8 +270,7 @@ function ModifyGoogleMapSettings()
 		array('text', 'googleMap_Key', 'postinput' => $txt['googleMap_Key_desc']),
 		// Default Location/Zoom/Map Controls/etc.
 		array('title', 'googleMap_MapSettings'),
-		/* New menu structure, need to rethink what makes sense here,
-		   for now it will be under members in community
+		/* New menu structure, need to rethink what makes sense here, for now it will be under members in community
 		array('select', 'googleMap_ButtonLocation', array(
 				'home' => $txt['home'],
 				'help' => $txt['help'],
@@ -326,20 +325,22 @@ function ModifyGoogleMapSettings()
 	);
 
 	// Load the settings to the form class
-	$gmmSettings->settings($config_vars);
+	$gmmSettings->setConfigVars($config_vars);
 
 	// Saving?
 	if (isset($_GET['save']))
 	{
 		checkSession();
-		Settings_Form::save_db($config_vars);
+		$gmmSettings->setConfigValues($_POST);
+		$gmmSettings->save();
+
 		redirectexit('action=admin;area=addonsettings;sa=googlemap');
 	}
 
 	// Continue on to the settings template
 	$context['post_url'] = $scripturl . '?action=admin;area=addonsettings;save;sa=googlemap';
 	$context['settings_title'] = $txt['googleMap'];
-	loadJavascriptFile('jscolor.min.js');
+	loadJavascriptFile('/gmm/jscolor.min.js');
 	addInlineJavascript('
 		document.getElementById(\'googleMap_PinBackground\').setAttribute("data-jscolor", "");
 		document.getElementById(\'googleMap_PinForeground\').setAttribute("data-jscolor", "");
@@ -347,7 +348,7 @@ function ModifyGoogleMapSettings()
 		document.getElementById(\'googleMap_ClusterForeground\').setAttribute("data-jscolor", "");',
 		true);
 
-	Settings_Form::prepare_db($config_vars);
+	$gmmSettings->prepare();
 }
 
 /**

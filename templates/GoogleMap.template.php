@@ -8,7 +8,7 @@
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * http://mozilla.org/MPL/1.1/.
  *
- * @version 1.0.7
+ * @version 1.0.8
  *
  */
 
@@ -84,7 +84,7 @@ function template_map()
 		if (!empty($modSettings['googleMap_EnableLegend']))
 		{
 			echo '
-				<svg style="position: absolute; overflow: hidden" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+				<svg style="position: absolute; overflow: hidden" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 					<defs>
 						<symbol id="icon-cluster" viewBox="0 0 36 36">
 							<path d="M18 0c-6.213 0-11.25 5.037-11.25 11.25 0 11.25 11.25 24.75 11.25 24.75s11.25-13.5 11.25-24.75c0-6.213-5.037-11.25-11.25-11.25zM18 18c-3.728 0-6.75-3.022-6.75-6.75s3.022-6.75 6.75-6.75 6.75 3.022 6.75 6.75-3.022 6.75-6.75 6.75z"></path>
@@ -175,10 +175,6 @@ function template_map()
 		// Close it up jim
 		echo '
 					</div>';
-
-		// Load the scripts so we can render the map
-		echo '
-				<script src="', $scripturl, '?action=GoogleMap;sa=js;count=', $context['total_pins'], '"></script>';
 	}
 }
 
