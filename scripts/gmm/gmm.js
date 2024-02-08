@@ -18,11 +18,13 @@ let gmarkers = [],
 // Map, cluster and info bubble
 let map,
 	mc,
+	mcOptions,
 	infoWindow;
 
 // Pins
 let npic,
-	cpic;
+	cpic,
+	clusterPin;
 
 /**
  * Defines the pin styles for markers and clusters on the Google Map.
@@ -55,8 +57,8 @@ function definePins()
 	if (googleMap_EnableClusterer)
 	{
 		// Create a dataURL for use in style url, here a standard pin:
-		const clusterPin = "data:image/svg+xml;base64," + window.btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + cpic.view + '"><g><path stroke="' + cpic.strokeColor + '" stroke-width="' + cpic.strokeWeight + '" fill="' + cpic.fillColor + '" fill-opacity="' + cpic.fillOpacity + '" d="' + cpic.path + '" /></g></svg>');
 		let codebase = "//github.com/googlemaps/js-markerclustererplus/raw/main";
+		clusterPin = "data:image/svg+xml;base64," + window.btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + cpic.view + '"><g><path stroke="' + cpic.strokeColor + '" stroke-width="' + cpic.strokeWeight + '" fill="' + cpic.fillColor + '" fill-opacity="' + cpic.fillOpacity + '" d="' + cpic.path + '" /></g></svg>');
 
 		// Various cluster pin styles
 		const styles = [[
@@ -65,7 +67,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[0],
 				height: clusterSize[0],
-				anchorIcon: [clusterSize[0], ' . clusterSize[0] / 2 . '],
+				anchorIcon: [clusterSize[0], clusterSize[0] / 2],
 				anchorText: [-6, -6],
 				textSize: 10
 			}),
@@ -74,7 +76,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[1],
 				height: clusterSize[1],
-				anchorIcon: [clusterSize[1], ' . clusterSize[1] / 2 . '],
+				anchorIcon: [clusterSize[1], clusterSize[1] / 2],
 				anchorText: [-8, -8],
 				textSize: 11
 			}),
@@ -83,7 +85,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[2],
 				height: clusterSize[2],
-				anchorIcon: [clusterSize[2], ' . clusterSize[2] / 2 . '],
+				anchorIcon: [clusterSize[2], clusterSize[2] / 2],
 				anchorText: [-10, -10],
 				textSize: 12
 			}),
@@ -92,7 +94,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[3],
 				height: clusterSize[3],
-				anchorIcon: [clusterSize[3], ' . clusterSize[3] / 2 . '],
+				anchorIcon: [clusterSize[3], clusterSize[3] / 2],
 				anchorText: [-12, -12],
 				textSize: 13
 			}),
@@ -101,7 +103,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[4],
 				height: clusterSize[4],
-				anchorIcon: [clusterSize[4], ' . clusterSize[4] / 2 . '],
+				anchorIcon: [clusterSize[4], clusterSize[4] / 2],
 				anchorText: [-14, -14],
 				textSize: 14
 			}),
@@ -111,35 +113,35 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[0],
 				height: clusterSize[0],
-				anchorIcon: [clusterSize[0], ' . clusterSize[0] / 2 . ']
+				anchorIcon: [clusterSize[0], clusterSize[0] / 2]
 			}),
 			MarkerClusterer.withDefaultStyle({
 				url: codebase + "/images/m2.png",
 				textColor: cpic_strokeColor,
 				width: clusterSize[1],
 				height: clusterSize[1],
-				anchorIcon: [clusterSize[1], ' . clusterSize[1] / 2 . ']
+				anchorIcon: [clusterSize[1], clusterSize[1] / 2]
 			}),
 			MarkerClusterer.withDefaultStyle({
 				url: codebase + "/images/m3.png",
 				textColor: cpic_strokeColor,
 				width: clusterSize[2],
 				height: clusterSize[2],
-				anchorIcon: [clusterSize[2], ' . clusterSize[2] / 2 . ']
+				anchorIcon: [clusterSize[2], clusterSize[2] / 2]
 			}),
 			MarkerClusterer.withDefaultStyle({
 				url: codebase + "/images/m4.png",
 				textColor: cpic_strokeColor,
 				width: clusterSize[3],
 				height: clusterSize[3],
-				anchorIcon: [clusterSize[3], ' . clusterSize[3] / 2 . ']
+				anchorIcon: [clusterSize[3], clusterSize[3] / 2]
 			}),
 			MarkerClusterer.withDefaultStyle({
 				url: codebase + "/images/m5.png",
 				textColor: cpic_strokeColor,
 				width: clusterSize[4],
 				height: clusterSize[4],
-				anchorIcon: [clusterSize[4], ' . clusterSize[4] / 2 . ']
+				anchorIcon: [clusterSize[4], clusterSize[4] / 2]
 			}),
 		], [
 			MarkerClusterer.withDefaultStyle({
@@ -147,7 +149,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[0],
 				height: clusterSize[0],
-				anchorIcon: [clusterSize[0], ' . clusterSize[0] / 2 . '],
+				anchorIcon: [clusterSize[0], clusterSize[0] / 2],
 				anchorText: [8, 0]
 			}),
 			MarkerClusterer.withDefaultStyle({
@@ -155,7 +157,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[1],
 				height: clusterSize[1],
-				anchorIcon: [clusterSize[1], ' . clusterSize[1] / 2 . '],
+				anchorIcon: [clusterSize[1], clusterSize[1] / 2],
 				anchorText: [10, 0]
 			}),
 			MarkerClusterer.withDefaultStyle({
@@ -163,7 +165,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[2],
 				height: clusterSize[2],
-				anchorIcon: [clusterSize[2], ' . clusterSize[2] / 2 . '],
+				anchorIcon: [clusterSize[2], clusterSize[2] / 2],
 				anchorText: [10, 0]
 			}),
 		], [
@@ -172,7 +174,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[0],
 				height: clusterSize[0],
-				anchorIcon: [clusterSize[0], ' . clusterSize[0] / 2 . '],
+				anchorIcon: [clusterSize[0], clusterSize[0] / 2],
 				anchorText: [-5, 0]
 			}),
 			MarkerClusterer.withDefaultStyle({
@@ -180,7 +182,7 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[1],
 				height: clusterSize[1],
-				anchorIcon: [clusterSize[1], ' . clusterSize[1] / 2 . '],
+				anchorIcon: [clusterSize[1], clusterSize[1] / 2],
 				anchorText: [-6, 0]
 			}),
 			MarkerClusterer.withDefaultStyle({
@@ -188,21 +190,20 @@ function definePins()
 				textColor: cpic_strokeColor,
 				width: clusterSize[2],
 				height: clusterSize[2],
-				anchorIcon: [clusterSize[2], ' . clusterSize[2] / 2 . '],
+				anchorIcon: [clusterSize[2], clusterSize[2] / 2],
 				anchorText: [-7, 0]
 			}),
 		]];
 
 		// Who does not like a good old-fashioned cluster, cause that is what we have here
-		let style = 0;
-		let mcOptions = {
+		mcOptions = {
 			gridSize: googleMap_GridSize,
 			maxZoom: 6,
 			averageCenter: true,
 			zoomOnClick: false,
 			minimumClusterSize: googleMap_MinMarkerPerCluster,
 			title: txt_googleMap_GroupOfPins,
-			styles: styles[style],
+			styles: styles[cpic_style],
 		};
 	}
 }
@@ -231,6 +232,8 @@ function showContents(oXMLDoc)
  * Initializes the Google Map and sets its options and controls.
  * Also defines the necessary pins and loads the members data.
  *
+ * Called by the Google Maps async function
+ *
  * @return {void}
  */
 function initialize()
@@ -246,6 +249,7 @@ function initialize()
 			{hue: "#0099ff"}
 		]
 	}];
+
 	let options = {
 		zoom: googleMap_DefaultZoom,
 		controlSize: 25,
@@ -268,7 +272,7 @@ function initialize()
 	map = new google.maps.Map(document.getElementById("map"), options);
 	infoWindow = new google.maps.InfoWindow();
 
-	// Load the members data
+	// Load member data
 	makeRequest(elk_scripturl + "?action=GoogleMap;sa=xml");
 
 	// Our own reset to initial state button since its gone walkies in the v3 api
