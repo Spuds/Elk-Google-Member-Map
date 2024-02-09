@@ -19,9 +19,8 @@
  * - Used to add items to the $memberContext array
  *
  * @param int $user
- * @param mixed $display_custom_fields
  */
-function imc_googlemap($user, $display_custom_fields)
+function imc_googlemap($user)
 {
 	global $memberContext, $user_profile;
 
@@ -48,7 +47,7 @@ function ilmd_googlemap(&$select_columns, &$select_tables, $set)
 {
 	if ($set === 'profile' || $set === 'normal')
 	{
-		$select_columns .= ',mem.latitude, mem.longitude, mem.pindate';
+		$select_columns .= ', mem.latitude, mem.longitude, mem.pindate';
 	}
 }
 
@@ -71,20 +70,27 @@ function ilpf_googlemap(&$profile_fields)
 			'type' => 'callback',
 			'callback_func' => 'googlemap_modify',
 			'permission' => 'googleMap_place',
-			'input_validate' => function (&$value) {
+			'input_validate' => static function () {
 				global $profile_vars, $cur_profile;
 
-				// Set latitude to a float value
-				$value = (float) $value;
+				// Changing / Updating
+				if (isset($_POST['longitude']) && (float) $_POST['longitude'] !== (float) $cur_profile['longitude'])
+				{
+					$profile_vars['pindate'] = time();
+					$cur_profile['pindate'] = $profile_vars['pindate'];
 
-				// Fix up longitude as well
-				$profile_vars['longitude'] = !empty($_POST['longitude']) ? (float) $_POST['longitude'] : 0;
-				$cur_profile['longitude'] = !empty($_POST['longitude']) ? (float) $_POST['longitude'] : 0;
+					$profile_vars['longitude'] = (float) $_POST['longitude'];
+					$cur_profile['longitude'] = $profile_vars['longitude'];
+				}
 
-				// Right now is a good time for the pin date ;)
-				$pintime = time();
-				$profile_vars['pindate'] = $pintime;
-				$cur_profile['pindate'] = $pintime;
+				if (isset($_POST['latitude']) && (float) $_POST['latitude'] !== (float) $cur_profile['latitude'])
+				{
+					$profile_vars['pindate'] = time();
+					$cur_profile['pindate'] = $profile_vars['pindate'];
+
+					$profile_vars['latitude'] = (float) $_POST['latitude'];
+					$cur_profile['latitude'] = $profile_vars['latitude'];
+				}
 
 				return true;
 			},
@@ -93,7 +99,7 @@ function ilpf_googlemap(&$profile_fields)
 
 				$context['member']['googleMap']['latitude'] = (float) $cur_profile['latitude'];
 				$context['member']['googleMap']['longitude'] = (float) $cur_profile['longitude'];
-				$context['member']['googleMap']['pindate'] = $cur_profile['pindate'];
+				$context['member']['googleMap']['pindate'] = $cur_profile['pindate'] ?? 0;
 
 				return true;
 			},
@@ -144,29 +150,6 @@ function imb_googlemap(&$buttons, &$menu_count)
 	);
 
 	$buttons['home']['sub_buttons'] = elk_array_insert($buttons['home']['sub_buttons'], $insert_after, $new_menu, 'after');
-}
-
-/**
- * integrate_profile_save
- *
- * - Profile save fields hook, called from Profile.controller.php
- * - used to prep and check variables before a profile update is saved
- *
- * @param array $profile_vars
- * @param array $post_errors
- * @param int $memID
- */
-function ips_googlemap(&$profile_vars, &$post_errors, $memID)
-{
-	if (isset($_POST['latitude']))
-	{
-		$profile_vars['latitude'] = $_POST['latitude'] !== '' ? (float) $_POST['latitude'] : 0;
-	}
-
-	if (isset($_POST['longitude']))
-	{
-		$profile_vars['longitude'] = $_POST['longitude'] !== '' ? (float) $_POST['longitude'] : 0;
-	}
 }
 
 /**
