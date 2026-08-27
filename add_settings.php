@@ -1,13 +1,17 @@
 <?php
 
 /**
- * @name      Google Member Map
- * @copyright (c) 2011-2021 Spuds
- * @license   MPL 1.1 http://mozilla.org/MPL/1.1/
  *
- * @version 1.0.8
+ * @package Google Member Map
+ * @version 2.0.0
+ * @author Spuds
+ * @copyright (c) 2011-2025 Spuds
+ * @license This Source Code is subject to the terms of the Mozilla Public License
+ * version 1.1 (the "License"). You can obtain a copy of the License at
+ * https://mozilla.org/MPL/1.1/.
  *
  */
+
 
 // If we have found SSI.php and we are outside of ELK, then we are running standalone.
 if (file_exists(__DIR__ . '/SSI.php') && !defined('ELK'))
@@ -24,12 +28,11 @@ $db = database();
 global $modSettings;
 
 // List settings here in the format: setting_key => default_value.  Escape any "s. (" => \")
-$mod_settings = array(
+$mod_settings = [
 	'googleMap_Enable' => 0,
 	'googleMap_Key' => '',
 	'googleMap_EnableLegend' => 1,
 	'googleMap_PinGender' => 0,
-	'googleMap_KMLoutput_enable' => 0,
 	'googleMap_PinNumber' => 250,
 	'googleMap_Type' => 'G_HYBRID_MAP',
 	'googleMap_Sidebar' => 'right',
@@ -53,70 +56,70 @@ $mod_settings = array(
 	'googleMap_ClusterShadow' => 1,
 	'googleMap_BoldMember' => 1,
 	'googleMap_ButtonLocation' => 'calendar',
-);
+];
 
 // Update mod settings if applicable
 foreach ($mod_settings as $new_setting => $new_value)
 {
 	if (!isset($modSettings[$new_setting]))
 	{
-		updateSettings(array($new_setting => $new_value));
+		updateSettings([$new_setting => $new_value]);
 	}
 }
 
 // Settings to create the new tables...
-$tables = array();
+$tables = [];
 
 // Add a row to an existing table
-$rows = array();
+$rows = [];
 
 // Add a column to an existing table
-$columns = array();
+$columns = [];
 $dbtbl = db_table();
-$columns[] = array(
+$columns[] = [
 	'table_name' => '{db_prefix}members',
 	'if_exists' => 'ignore',
 	'error' => 'fatal',
-	'parameters' => array(),
-	'column_info' => array(
+	'parameters' => [],
+	'column_info' => [
 		'name' => 'longitude',
 		'auto' => false,
 		'default' => 0,
 		'type' => 'decimal(18,15)',
 		'null' => true,
-	)
-);
-$columns[] = array(
+	]
+];
+$columns[] = [
 	'table_name' => '{db_prefix}members',
 	'if_exists' => 'ignore',
 	'error' => 'fatal',
-	'parameters' => array(),
-	'column_info' => array(
+	'parameters' => [],
+	'column_info' => [
 		'name' => 'latitude',
 		'auto' => false,
 		'default' => 0,
 		'type' => 'decimal(18,15)',
 		'null' => true,
-	)
-);
-$columns[] = array(
+	]
+];
+$columns[] = [
 	'table_name' => '{db_prefix}members',
 	'if_exists' => 'ignore',
 	'error' => 'fatal',
-	'parameters' => array(),
-	'column_info' => array(
+	'parameters' => [],
+	'column_info' => [
 		'name' => 'pindate',
 		'auto' => false,
 		'default' => 0,
 		'type' => 'int',
 		'size' => 10,
 		'null' => false,
-	)
-);
+	]
+];
 
 foreach ($tables as $table)
 {
-	$dbtbl->db_create_table($table['table_name'], $table['columns'], $table['indexes'], $table['parameters'], $table['if_exists'], $table['error']);
+	$dbtbl->create_table($table['table_name'], $table['columns'], $table['indexes'], $table['parameters'], $table['if_exists'], $table['error']);
 }
 
 foreach ($rows as $row)
@@ -126,11 +129,11 @@ foreach ($rows as $row)
 
 foreach ($columns as $column)
 {
-	$dbtbl->db_add_column($column['table_name'], $column['column_info'], $column['parameters'], $column['if_exists'], $column['error']);
+	$dbtbl->add_column($column['table_name'], $column['column_info'], $column['parameters'], $column['if_exists'], $column['error']);
 }
 
 // Initialize the groups array with 'ungrouped members' (ID: 0).
-$groups = array(0);
+$groups = [0];
 
 // Get all the non-postcount based groups.
 $request = $db->query('', '
@@ -139,7 +142,7 @@ $request = $db->query('', '
 	FROM {db_prefix}membergroups
 	WHERE min_posts = -1');
 
-while ($row = $db->fetch_assoc($request))
+while ($row = $request->fetch_assoc())
 {
 	$groups[] = $row['id_group'];
 }

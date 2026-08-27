@@ -1,25 +1,27 @@
 /**
  * @package "Google Member Map" Addon for Elkarte
  * @author Spuds
- * @copyright (c) 2011-2022 Spuds
+ * @copyright (c) 2011-2025 Spuds
  * @license This Source Code is subject to the terms of the Mozilla Public License
  * version 1.1 (the "License"). You can obtain a copy of the License at
- * http://mozilla.org/MPL/1.1/.
+ * https://mozilla.org/MPL/1.1/.
  *
- * @version 1.0.8
+ * @version 2.0.0
  *
  */
 
 // Arrays to hold copies of the markers and html used by the sidebar
 let gmarkers = [],
 	htmls = [],
+	headers = [],
 	sidebar_html = '';
 
 // Map, cluster and info bubble
 let map,
 	mc,
 	mcOptions,
-	infoWindow;
+	infoWindow,
+	infoHeaderDiv = document.createElement('div');
 
 // Pins
 let npic,
@@ -37,7 +39,7 @@ function definePins()
 	npic = {
 		path: "M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z",
 		fillColor: npic_fillColor,
-		fillOpacity: .8,
+		fillOpacity: 0.8,
 		strokeColor: npic_strokeColor,
 		strokeWeight: 1,
 		scale: npic_scale,
@@ -48,7 +50,7 @@ function definePins()
 		path: "M385.5 1.1c-55.5 4.4-104.3 17.6-153 41.4C86.8 113.7-4.5 264.8.3 426.5 2.2 487 15.5 542 40.9 594.5 51.8 617 59.2 629.8 74 652c6.5 9.6 85.6 136.9 176 282.7 90.3 145.9 164.6 265.3 165 265.3.4 0 74.7-119.4 165-265.2C670.4 788.9 749.5 661.6 756 652c14.8-22.2 22.2-35 33.1-57.5 42.1-86.9 52-186.9 27.9-282.1-24.4-95.8-82.2-179.5-164-237.1C583.4 26.2 497.9-.6 412.6.1c-9.4.1-21.6.5-27.1 1zM449 177.5c44 8 81.3 27.1 112 57.5 76.9 76.1 82.5 198 13 281.2-33.5 40.2-81.7 66.3-134.4 72.8-11.4 1.4-37.8 1.4-49.2 0-85.3-10.5-155-71.5-176.4-154.4-14.1-54.5-5.2-113.6 24.3-161.3 33-53.1 86.2-87.6 149.7-96.8 13-1.9 48.1-1.3 61 1z",
 		view: "0,0,1280,1280",
 		fillColor: cpic_fillColor,
-		fillOpacity: .8,
+		fillOpacity: 0.8,
 		strokeColor: cpic_strokeColor,
 		strokeWeight: 20,
 	};
@@ -273,7 +275,7 @@ function initialize()
 	infoWindow = new google.maps.InfoWindow();
 
 	// Load member data
-	makeRequest(elk_scripturl + "?action=GoogleMap;sa=xml");
+	makeRequest(elk_scripturl + "?action=MemberMap;sa=xml");
 
 	// Our own reset to initial state button since its gone walkies in the v3 api
 	let reset = document.getElementById("googleMapReset");
@@ -289,6 +291,7 @@ function makeMarkers(xmldoc)
 {
 	let markers = xmldoc.documentElement.getElementsByTagName("marker"),
 		point,
+		header,
 		html,
 		label;
 
@@ -298,7 +301,8 @@ function makeMarkers(xmldoc)
 		point = {lat: parseFloat(markers[i].getAttribute("lat")), lng: parseFloat(markers[i].getAttribute("lng"))};
 		html = markers[i].childNodes[0].nodeValue;
 		label = markers[i].getAttribute("label");
-		createMarker(point, npic, label, html, i);
+		header = markers[i].getAttribute("header");
+		createMarker(point, npic, label, header, html, i);
 	}
 
 	// Clustering enabled and we have enough pins?
@@ -352,7 +356,7 @@ function makeMarkers(xmldoc)
  * @param {number} i - The index used to identify the marker.
  * @return {void}
  */
-function createMarker(point, pic, name, html, i)
+function createMarker(point, pic, name, header, html, i)
 {
 	// Map marker
 	let marker = new google.maps.Marker({
@@ -367,6 +371,8 @@ function createMarker(point, pic, name, html, i)
 	marker.addListener("click", () => {
 		infoWindow.close();
 		infoWindow.setContent(html);
+		infoHeaderDiv.innerHTML = header;
+		infoWindow.setHeaderContent(infoHeaderDiv);
 		infoWindow.open(map, marker);
 		map.panTo(infoWindow.getPosition());
 	});
@@ -374,11 +380,12 @@ function createMarker(point, pic, name, html, i)
 	// Save the info used to populate the sidebar
 	gmarkers.push(marker);
 	htmls.push(html);
-	name = name.replace(/\[b\](.*)\[\/b\]/gi, "<strong>$1</strong>");
+	headers.push(header);
 
 	// Add a line to the sidebar html
 	if (googleMap_Sidebar !== 'none')
 	{
+		name = name.replace(/\[b\](.*)\[\/b\]/gi, "<strong>$1</strong>");
 		sidebar_html += '<a href="javascript:finduser(' + i + ')">' + name + '</a><br />';
 	}
 }
@@ -395,6 +402,8 @@ function finduser(i)
 	infoWindow.close();
 	infoWindow.setOptions({pixelOffset: new google.maps.Size(0, -20)});
 	infoWindow.setContent(htmls[i]);
+	infoHeaderDiv.innerHTML = headers[i];
+	infoWindow.setHeaderContent(infoHeaderDiv);
 	infoWindow.setPosition(marker);
 	infoWindow.open(map);
 

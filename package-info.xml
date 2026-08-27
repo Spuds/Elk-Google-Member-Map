@@ -3,72 +3,67 @@
 <package-info xmlns="https://www.elkarte.net/site/package-info" xmlns:elk="https://www.elkarte.net/">
 	<id>Spuds:gmmMod</id>
 	<name>Google Member Map</name>
-	<version>1.0.8</version>
+	<version>2.0.0</version>
 	<type>addon</type>
 	<license><![CDATA[
 /**
  * Google Member Map
  *
  * @author spuds
- * @license MPL 1.1 http://mozilla.org/MPL/1.1/
+ * @license MPL 1.1 https://mozilla.org/MPL/1.1/
  *
- * @version 1.0.8
+ * @version 2.0.0
  */
 ]]></license>
-	<install for="1.1 - 1.1.99">
+	<install for="2.0.0 Beta 1 - 2.0.99">
 		<readme type="file" parsebbc="true">install-readme.txt</readme>
 		<license type="inline">This ElkArte addon is released under a MPL V1.1 license, a copy of it with its provisions is included with the package.</license>
 
-		<require-file name="sources/GoogleMapIntegration.php" destination="SOURCEDIR">Our integration Functions</require-file>
-		<require-file name="sources/GoogleMap.controller.php" destination="CONTROLLERDIR">The addon controller</require-file>
-		<require-file name="sources/GoogleMap.subs.php" destination="SUBSDIR">The addon helpers</require-file>
+		<require-dir name="MemberMap" destination="ADDONSDIR" />
 		<require-dir name="scripts" destination="THEMEDIR">Javascript Helper Files</require-dir>
+		<require-dir name="languages/MemberMap" destination="LANGUAGEDIR">Language Files</require-dir>
+
 		<require-file name="css/GoogleMap.css" destination="THEMEDIR/css">Style Sheets</require-file>
 		<require-file name="templates/GoogleMap.template.php" destination="THEMEDIR">The template for viewing the member map</require-file>
-		<require-file name="languages/GoogleMap.english.php" destination="LANGUAGEDIR/english">The language strings</require-file>
-		<require-file name="languages/GoogleMap.german.php" destination="LANGUAGEDIR/german" />
-		<require-file name="google_earth_feed.gif" destination="IMAGESDIR" />
+
 		<database type="file">add_settings.php</database>
 
-		<hook hook="integrate_admin_areas" file="SOURCEDIR/GoogleMapIntegration.php" function="iaa_googlemap" />
-		<hook hook="integrate_sa_modify_modifications" file="SOURCEDIR/GoogleMapIntegration.php" function="imm_googlemap" />
-		<hook hook="integrate_menu_buttons" file="SOURCEDIR/GoogleMapIntegration.php" function="imb_googlemap" />
-		<hook hook="integrate_load_permissions" file="SOURCEDIR/GoogleMapIntegration.php" function="ilp_googlemap" />
-		<hook hook="integrate_member_context" file="SOURCEDIR/GoogleMapIntegration.php" function="imc_googlemap" />
-		<hook hook="integrate_load_member_data" file="SOURCEDIR/GoogleMapIntegration.php" function="ilmd_googlemap" />
-		<hook hook="integrate_load_profile_fields" file="SOURCEDIR/GoogleMapIntegration.php" function="ilpf_googlemap" />
-		<hook hook="integrate_forum_profile_fields" file="SOURCEDIR/GoogleMapIntegration.php" function="ifpf_googlemap" />
-		<hook hook="integrate_profile_summary" file="SOURCEDIR/GoogleMapIntegration.php" function="iprofs_googlemap" />
-		<hook hook="integrate_whos_online" file="SOURCEDIR/GoogleMapIntegration.php" function="gmm_integrate_whos_online" />
-		<hook hook="integrate_quickhelp" file="SOURCEDIR/GoogleMapIntegration.php" function="ilqh_googlemap" />
+		<hook hook="integrate_admin_areas" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="iaa_googlemap" />
+		<hook hook="integrate_sa_modify_modifications" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="imm_googlemap" />
+		<hook hook="integrate_menu_buttons" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="imb_googlemap" />
+		<hook hook="integrate_load_permissions" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilp_googlemap" />
+		<hook hook="integrate_member_context" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="imc_googlemap" />
+		<hook hook="integrate_load_member_data" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilmd_googlemap" />
+		<hook hook="integrate_load_profile_fields" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilpf_googlemap" />
+		<hook hook="integrate_forum_profile_fields" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ifpf_googlemap" />
+		<hook hook="integrate_profile_summary" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="iprofs_googlemap" />
+		<hook hook="integrate_whos_online" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="gmm_integrate_whos_online" />
+		<hook hook="integrate_quickhelp" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilqh_googlemap" />
 
 		<credits url="www.elkarte.net" license="MPL 1.1" copyright="spuds">Google Member Map</credits>
 		<redirect url="index.php?action=admin;area=addonsettings;sa=googlemap" timeout="3000">redirect.txt</redirect>
 	</install>
 
-	<uninstall for="1.1 - 1.1.99">
+	<uninstall for="2.0.0 Beta 1 - 2.0.99">
 		<readme type="file" parsebbc="true">uninstall-readme.txt</readme>
-		<hook reverse="true" hook="integrate_admin_areas" file="SOURCEDIR/GoogleMapIntegration.php" function="iaa_googlemap" />
-		<hook reverse="true" hook="integrate_sa_modify_modifications" file="SOURCEDIR/GoogleMapIntegration.php" function="imm_googlemap" />
-		<hook reverse="true" hook="integrate_menu_buttons" file="SOURCEDIR/GoogleMapIntegration.php" function="imb_googlemap" />
-		<hook reverse="true" hook="integrate_load_permissions" file="SOURCEDIR/GoogleMapIntegration.php" function="ilp_googlemap" />
-		<hook reverse="true" hook="integrate_member_context" file="SOURCEDIR/GoogleMapIntegration.php" function="imc_googlemap" />
-		<hook reverse="true" hook="integrate_load_member_data" file="SOURCEDIR/GoogleMapIntegration.php" function="ilmd_googlemap" />
-		<hook reverse="true" hook="integrate_load_profile_fields" file="SOURCEDIR/GoogleMapIntegration.php" function="ilpf_googlemap" />
-		<hook reverse="true" hook="integrate_forum_profile_fields" file="SOURCEDIR/GoogleMapIntegration.php" function="ifpf_googlemap" />
-		<hook reverse="true" hook="integrate_profile_summary" file="SOURCEDIR/GoogleMapIntegration.php" function="iprofs_googlemap" />
-		<hook reverse="true" hook="integrate_whos_online" file="SOURCEDIR/GoogleMapIntegration.php" function="gmm_integrate_whos_online" />
-		<hook reverse="true" hook="integrate_quickhelp" file="SOURCEDIR/GoogleMapIntegration.php" function="ilqh_googlemap" />
+		<hook reverse="true" hook="integrate_admin_areas" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="iaa_googlemap" />
+		<hook reverse="true" hook="integrate_sa_modify_modifications" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="imm_googlemap" />
+		<hook reverse="true" hook="integrate_menu_buttons" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="imb_googlemap" />
+		<hook reverse="true" hook="integrate_load_permissions" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilp_googlemap" />
+		<hook reverse="true" hook="integrate_member_context" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="imc_googlemap" />
+		<hook reverse="true" hook="integrate_load_member_data" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilmd_googlemap" />
+		<hook reverse="true" hook="integrate_load_profile_fields" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilpf_googlemap" />
+		<hook reverse="true" hook="integrate_forum_profile_fields" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ifpf_googlemap" />
+		<hook reverse="true" hook="integrate_profile_summary" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="iprofs_googlemap" />
+		<hook reverse="true" hook="integrate_whos_online" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="gmm_integrate_whos_online" />
+		<hook reverse="true" hook="integrate_quickhelp" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="ilqh_googlemap" />
 
-		<remove-file name="SOURCEDIR/GoogleMapIntegration.php" />
-		<remove-file name="CONTROLLERDIR/GoogleMap.controller.php" />
-		<remove-file name="SUBSDIR/GoogleMap.subs.php" destination="SUBSDIR" />
-		<remove-dir name="THEMEDIR/scripts/gmm"></remove-dir>
+		<remove-dir name="ADDONSDIR/MemberMap" />
+		<remove-dir name="THEMEDIR/scripts/gmm" />
+		<remove-dir name="LANGUAGEDIR/MemberMap" />
+
 		<remove-file name="THEMEDIR/css/GoogleMap.css" />
 		<remove-file name="THEMEDIR/GoogleMap.template.php" />
-		<remove-file name="LANGUAGEDIR/english/GoogleMap.english.php" />
-		<remove-file name="LANGUAGEDIR/german/GoogleMap.german.php" />
-		<remove-file name="IMAGESDIR/google_earth_feed.gif" />
 
 		<database type="file">remove_settings.php</database>
 	</uninstall>

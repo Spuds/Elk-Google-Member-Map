@@ -1,11 +1,14 @@
 <?php
 
 /**
- * @name      Google Member Map
- * @copyright Spuds
- * @license   MPL 1.1 http://mozilla.org/MPL/1.1/
  *
- * @version 1.0.7
+ * @package Google Member Map
+ * @version 2.0.0
+ * @author Spuds
+ * @copyright (c) 2011-2025 Spuds
+ * @license This Source Code is subject to the terms of the Mozilla Public License
+ * version 1.1 (the "License"). You can obtain a copy of the License at
+ * https://mozilla.org/MPL/1.1/.
  *
  */
 
@@ -21,7 +24,7 @@ elseif (!defined('ELK')) // If we are outside Elkarte and can't find SSI.php, th
 
 global $modSettings;
 
-// Only do database changes on uninstall if requested.
+// Only do database changes on uninstallation if requested.
 if (!empty($_POST['do_db_changes']))
 {
 	$db = database();

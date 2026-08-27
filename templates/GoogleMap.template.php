@@ -3,12 +3,12 @@
 /**
  * @package "Google Member Map" Addon for Elkarte
  * @author Spuds
- * @copyright (c) 2011-2022 Spuds
+ * @copyright (c) 2011-2025 Spuds
  * @license This Source Code is subject to the terms of the Mozilla Public License
  * version 1.1 (the "License"). You can obtain a copy of the License at
- * http://mozilla.org/MPL/1.1/.
+ * https://mozilla.org/MPL/1.1/.
  *
- * @version 1.0.8
+ * @version 2.0.0
  *
  */
 
@@ -151,19 +151,6 @@ function template_map()
 							<tr>
 								<td>
 									<a href="', $scripturl, '?action=profile;area=forumprofile#GMAP">', $txt['googleMap_AddPinNote'], '</a>
-								</td>
-							</tr>';
-		}
-
-		// Google earth klm output enabled?
-		if (!empty($modSettings['googleMap_KMLoutput_enable']))
-		{
-			echo '
-							<tr>
-								<td style=text-align: center;">
-									<a href="', $scripturl, '?action=GoogleMap;sa=kml">
-										<img src="', $settings['default_theme_url'], '/images/google_earth_feed.gif" border="0" alt="" />
-									</a>
 								</td>
 							</tr>';
 		}
@@ -313,7 +300,7 @@ function template_profile_block_gmm()
 
 		echo '
 	<div class="profileblock">
-		<h3 class="category_header hdicon cat_img_eye">
+		<h3 class="category_header hdicon i-eye">
 			', ($context['user']['is_owner']) ? '<a href="' . $scripturl . '?action=profile;area=forumprofile;u=' . $context['member']['id'] . '">' . $title . '</a>' : $title, '
 		</h3>
 		<div class="profileblock">
