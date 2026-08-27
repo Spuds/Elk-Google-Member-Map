@@ -192,7 +192,7 @@ function ilqh_googlemap()
  * iaa_googlemap()
  *
  * - Admin Hook, integrate_admin_areas, called from Menu.php
- * - used to add/modify admin menu areas. Here we add a new menu subsection to the config addonsettings area
+ * - Used to add/modify admin menu areas. Here we add a new menu subsection to the addons addonsettings area
  *
  * @param array $admin_areas
  */
@@ -203,7 +203,7 @@ function iaa_googlemap($admin_areas)
 	Txt::load('MemberMap');
 
 	/* @var \ElkArte\Menu\Menu $admin_areas */
-	$admin_areas->insertSubsection('config', 'addonsettings', 'googlemap', [$txt['googleMap']]);
+	$admin_areas->insertSubsection('addons', 'addonsettings', 'googlemap', [$txt['googleMap']]);
 }
 
 /**
@@ -338,7 +338,7 @@ function ModifyGoogleMapSettings()
 }
 
 /**
- * Whos online hook, integrate_whos_online, called from who.subs
+ * Who's online hook, integrate_whos_online, called from who.subs
  * translates custom actions to allow show what area a user is in
  *
  * @param array $actions
