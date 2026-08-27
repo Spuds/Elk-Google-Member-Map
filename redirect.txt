@@ -1,2 +1,2 @@
-Congratulations! The Google Member Map addon was installed successfully!
+Congratulations! The Member Map addon was installed successfully!
 You will now be taken to the page where the settings for the addon are located.

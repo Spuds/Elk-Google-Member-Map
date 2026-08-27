@@ -1,7 +1,7 @@
 /**
  * @package "Google Member Map" Addon for Elkarte
  * @author Spuds
- * @copyright (c) 2011-2025 Spuds
+ * @copyright (c) 2011-2026 Spuds
  * @license This Source Code is subject to the terms of the Mozilla Public License
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * https://mozilla.org/MPL/1.1/.

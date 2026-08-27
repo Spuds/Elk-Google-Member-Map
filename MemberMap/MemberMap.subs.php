@@ -3,7 +3,7 @@
 /**
  * @package "Google Member Map" Addon for Elkarte
  * @author Spuds
- * @copyright (c) 2011-2025 Spuds
+ * @copyright (c) 2011-2026 Spuds
  * @license This Source Code is subject to the terms of the Mozilla Public License
  * version 1.1 (the "License"). You can obtain a copy of the License at
  * http://mozilla.org/MPL/1.1/.
@@ -37,7 +37,7 @@ function gmm_pinCount()
  * Loads the member id's for a group of pins
  * Will load all pins or limit based off the max pins to show setting
  *
- * @param boolean $loadAll set to true to always load all member pins
+ * @param bool $loadAll set to true to always load all member pins
  * @return array
  */
 function gmm_loadPins($loadAll = false)
