@@ -54,6 +54,14 @@ class MemberMap extends AbstractController
 	 */
 	public function action_index()
 	{
+		global $context, $txt;
+
+		// Add it to the linktree
+		$context['breadcrumbs'][] = [
+			'url' => getUrl('action', ['action' => 'MemberMap']),
+			'name' => $txt['googleMap'],
+		];
+
 		$this->action_gmm_main();
 	}
 
