@@ -15,7 +15,7 @@
  * @version 2.0.0
  */
 ]]></license>
-	<install for="2.0.0 Beta 1 - 2.0.99">
+	<install for="2.0.0 Beta 2 - 2.0.99">
 		<readme type="file" parsebbc="true">install-readme.txt</readme>
 		<license type="inline">This ElkArte addon is released under a MPL V1.1 license, a copy of it with its provisions is included with the package.</license>
 
@@ -44,7 +44,7 @@
 		<redirect url="index.php?action=admin;area=addonsettings;sa=googlemap" timeout="3000">redirect.txt</redirect>
 	</install>
 
-	<uninstall for="2.0.0 Beta 1 - 2.0.99">
+	<uninstall for="2.0.0 Beta 2 - 2.0.99">
 		<readme type="file" parsebbc="true">uninstall-readme.txt</readme>
 		<hook reverse="true" hook="integrate_admin_areas" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="iaa_googlemap" />
 		<hook reverse="true" hook="integrate_sa_modify_modifications" file="ADDONSDIR/MemberMap/MemberMapIntegrate.php" function="imm_googlemap" />
