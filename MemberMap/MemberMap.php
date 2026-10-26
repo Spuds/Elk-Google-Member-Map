@@ -28,7 +28,7 @@ class MemberMap extends AbstractController
 	protected $_cpin;
 
 	/**
-	 * Entry point function for MemberMap, permission checks, makes sure its on
+	 * Entry point function for MemberMap, permission checks, makes sure it's on
 	 */
 	public function pre_dispatch()
 	{
@@ -68,8 +68,8 @@ class MemberMap extends AbstractController
 	/**
 	 * gmm_main()
 	 *
-	 * Calls the googlemap template which in turn makes the
-	 * xml or js request for data
+	 * Calls the googlemap template, which in turn makes the
+	 * XML or JS request for data
 	 */
 	public function action_gmm_main()
 	{
@@ -109,7 +109,7 @@ class MemberMap extends AbstractController
 		// Our push pins are defined from gmm_buildpins
 		$this->gmm_buildpins();
 
-		// Validate the specified pin size is not to small
+		// Validate the specified pin size is not too small
 		$m_iconsize = (isset($modSettings['googleMap_PinSize']) && $modSettings['googleMap_PinSize'] > 14) ? $modSettings['googleMap_PinSize'] : 24;
 		$c_iconsize = (isset($modSettings['googleMap_ClusterSize']) && $modSettings['googleMap_ClusterSize'] > 14) ? $modSettings['googleMap_ClusterSize'] : 24;
 
@@ -155,7 +155,7 @@ class MemberMap extends AbstractController
 	}
 
 	/**
-	 * Creates xml data for use on a map
+	 * Creates XML data for use on a map
 	 *
 	 * - Builds the pin info window content
 	 * - Builds the map sidebar layout
@@ -163,7 +163,7 @@ class MemberMap extends AbstractController
 	 */
 	public function action_xml()
 	{
-		global $context, $settings, $options, $scripturl, $txt, $modSettings, $user_info;
+		global $context, $settings, $options, $scripturl, $txt, $modSettings;
 
 		// Make sure the buffer is empty
 		ob_clean();
@@ -188,15 +188,15 @@ class MemberMap extends AbstractController
 		echo '<?xml version="1.0" encoding="UTF-8"?', '>
 		<markers>';
 
-		// To prevent the avatar being outside the popup info window we set a max div height
+		// To prevent the avatar being outside the popup info window, we set a max div height
 		$div_height = max($modSettings['avatar_max_height_external'] ?? 0, $modSettings['avatar_max_height_upload'] ?? 100);
 
 		// Load the data for these 'pined' members
-		MembersList::load($temp, false);
+		MembersList::load($temp);
 		foreach ($temp as $mem)
 		{
 			$member = MembersList::get($mem);
-			$member->loadContext(true);
+			$member->loadContext();
 
 			if ($member->isEmpty())
 			{
@@ -238,11 +238,11 @@ class MemberMap extends AbstractController
 						<li class="postgroup">' . $member['post_group'] . '</li>';
 				}
 
-				// groups icons
+				// Group icons
 				$dataBlurb .= '
 						<li class="icons">' . $member['group_icons'] . '</li>';
 
-				// show the title, if they have one
+				// Show the title if they have one
 				if (!empty($member['title']) && !User::$info->is_guest)
 				{
 					$dataBlurb .= '
@@ -274,7 +274,7 @@ class MemberMap extends AbstractController
 								</li>';
 					}
 
-					// Allowed to send PMs and the message is not their own and not from a guest.
+					// Allowed to send PMs, and the message is not their own and not from a guest.
 					if (allowedTo('pm_send'))
 					{
 						$dataBlurb .= '
@@ -331,18 +331,18 @@ class MemberMap extends AbstractController
 		echo '
 		</markers>';
 
-		// Ok we should be done with output, jump to the template
+		// Ok, we should be done with output, jump to the template
 		obExit(false);
 	}
 
 	/**
-	 * Does the majority of work in determining how the map pin should look based on admin settings
+	 * Does the majority of work in determining how the map pin should look based on admin settings?
 	 */
 	private function gmm_buildpins()
 	{
 		global $modSettings;
 
-		// Lets work out all those options so this works
+		// Let's work out all those options so this works
 		$modSettings['googleMap_ClusterBackground'] = $this->gmm_validate_color('googleMap_ClusterBackground', 'FF66FF');
 		$modSettings['googleMap_ClusterForeground'] = $this->gmm_validate_color('googleMap_ClusterForeground', '202020');
 		$modSettings['googleMap_PinBackground'] = $this->gmm_validate_color('googleMap_PinBackground', '66FF66');
@@ -354,7 +354,7 @@ class MemberMap extends AbstractController
 	}
 
 	/**
-	 * Makes sure we have a 6digit hex for the color definitions or sets a default value
+	 * Makes sure we have a 6-digit hex for the color definitions or sets a default value
 	 *
 	 * @param string $color
 	 * @param string $default
@@ -364,13 +364,13 @@ class MemberMap extends AbstractController
 	{
 		global $modSettings;
 
-		// No leading #'s please
-		if (strpos($modSettings[$color], '#') === 0)
+		// No leading #'s, please
+		if (str_starts_with($modSettings[$color], '#'))
 		{
 			$modSettings[$color] = substr($modSettings[$color], 1);
 		}
 
-		// Is it a hex, it needs to be!
+		// Is it a hex? It needs to be!
 		if (!preg_match('~^[a-f0-9]{6}$~i', $modSettings[$color]))
 		{
 			$modSettings[$color] = $default;
@@ -395,23 +395,14 @@ class MemberMap extends AbstractController
 		// Return the type of pin requested
 		if (isset($modSettings[$area]))
 		{
-			switch ($modSettings[$area])
+			$pin = match ($modSettings[$area])
 			{
-				case 'googleMap_plainpin':
-					$pin = 'd_map_pin';
-					break;
-				case 'googleMap_zonepin':
-					$pin = 1;
-					break;
-				case 'googleMap_peepspin':
-					$pin = 2;
-					break;
-				case 'googleMap_talkpin':
-					$pin = 3;
-					break;
-				default:
-					$pin = 'd_map_pin';
-			}
+				'googleMap_plainpin' => 'd_map_pin',
+				'googleMap_zonepin' => 1,
+				'googleMap_peepspin' => 2,
+				'googleMap_talkpin' => 3,
+				default => 'd_map_pin',
+			};
 		}
 
 		return $pin;

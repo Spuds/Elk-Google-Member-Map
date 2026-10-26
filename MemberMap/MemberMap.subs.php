@@ -19,7 +19,7 @@ function gmm_pinCount()
 {
 	$db = database();
 
-	// Lets find the number of members that have placed their map pin for the template
+	// Let's find the number of members that have placed their map pin for the template
 	$request = $db->query('', '
 		SELECT 
 		    COUNT(*) as TOTAL
@@ -73,7 +73,7 @@ function gmm_loadPins($loadAll = false)
 		ORDER BY pindate DESC, real_name ASC';
 	}
 
-	// Request defined, lets make the query
+	// Request defined, let's make the query
 	$request = $db->query('',
 		$query,
 		[

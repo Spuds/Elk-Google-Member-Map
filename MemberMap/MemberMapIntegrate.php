@@ -15,6 +15,7 @@
 use ElkArte\Languages\Txt;
 use ElkArte\Helper\HttpReq;
 use ElkArte\Member;
+use ElkArte\Menu\Menu;
 use ElkArte\SettingsForm\SettingsForm;
 
 /**
@@ -27,7 +28,7 @@ use ElkArte\SettingsForm\SettingsForm;
  */
 function imc_googlemap($member)
 {
-	// Prepare the data for use in javaScript
+	// Prepare the data for use in JavaScript
 	$member->mergeWith([
 		'googleMap' => [
 			'latitude' => !isset($member['latitude']) ? 0 : (float) $member['latitude'],
@@ -145,7 +146,7 @@ function imb_googlemap(&$buttons, &$menu_count)
 
 	Txt::load('MemberMap');
 
-	// Where do we want to place our button
+	// Where do we want to place our button?
 	$insert_after = 'memberlist';
 
 	// Define the new menu item(s), this will call for MemberMap
@@ -184,7 +185,7 @@ function ilp_googlemap(&$permissionGroups, &$permissionList, &$leftPermissionGro
  */
 function ilqh_googlemap()
 {
-	// Load the GoogleMap Help file.
+	// Load the Google Maps Help file.
 	Txt::load('MemberMap');
 }
 
@@ -202,7 +203,7 @@ function iaa_googlemap($admin_areas)
 
 	Txt::load('MemberMap');
 
-	/* @var \ElkArte\Menu\Menu $admin_areas */
+	/* @var Menu $admin_areas */
 	$admin_areas->insertSubsection('addons', 'addonsettings', 'googlemap', [$txt['googleMap']]);
 }
 
